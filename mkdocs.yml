@@ -1,36 +1,75 @@
 site_name: Infra Handbook
+site_description: Field notes, runbooks and labs on Linux, cloud and infrastructure
 site_author: Aditya Pradhan
+copyright: Notes by Aditya Pradhan
 site_url: https://adityapradhan14.github.io/infra-handbook/
 repo_url: https://github.com/Adityapradhan14/infra-handbook
-repo_name: Adityapradhan14/infra-handbook
+repo_name: infra-handbook
 theme:
   name: material
+  font: false
+  icon:
+    repo: fontawesome/brands/github
   palette:
-    - scheme: slate
-      primary: black
-      accent: teal
+    - scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
-        name: Light mode
-    - scheme: default
-      primary: black
-      accent: teal
+        name: Dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
-        name: Dark mode
+        name: Light mode
   features:
-    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.footer
     - navigation.top
+    - toc.follow
     - search.suggest
+    - search.highlight
     - content.code.copy
+extra_css:
+  - stylesheets/extra.css
+extra_javascript:
+  - javascripts/home.js
+hooks:
+  - hooks/revise.py
 markdown_extensions:
   - admonition
+  - attr_list
+  - md_in_html
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - toc:
       permalink: true
 nav:
   - Home: index.md
   - Linux:
-      - Overview: linux/index.md
+      - linux/index.md
+      - The Shell: linux/shell-basics.md
+      - Navigation: linux/navigation.md
+      - Exploring the System: linux/exploring-the-system.md
+      - Files & Directories: linux/files-and-directories.md
+      - Working with Commands: linux/working-with-commands.md
+      - Redirection & Pipes: linux/redirection.md
+      - Expansion & Quoting: linux/shell-expansion.md
+      - Keyboard Shortcuts: linux/keyboard-shortcuts.md
+      - Permissions: linux/permissions.md
+      - Processes: linux/processes.md
+      - vi / vim: linux/vim.md
+      - Package Management: linux/package-management.md
+      - Networking: linux/networking.md
+      - Finding Files: linux/finding-files.md
