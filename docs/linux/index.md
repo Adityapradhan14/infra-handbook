@@ -31,13 +31,15 @@ Shell and system fundamentals for day-to-day ops work. The chapters are in readi
     `chmod`, `chown`, `umask`, special bits, `sudo`
 10. [Processes](processes.md)
     `ps`, `top`, process states, signals, jobs
-11. [vi / vim](vim.md)
+11. [systemd & Services](systemd.md)
+    `systemctl`, unit files, start vs enable, `journalctl`
+12. [vi / vim](vim.md)
     Modes, editing, search and replace
-12. [Package Management](package-management.md)
+13. [Package Management](package-management.md)
     `apt`, `dpkg`, packages in Dockerfiles
-13. [Networking](networking.md)
+14. [Networking](networking.md)
     IPs, routes, ports, DNS, `curl`, SSH
-14. [Finding Files](finding-files.md)
+15. [Finding Files](finding-files.md)
     `locate`, `find` tests and actions
 
 </div>

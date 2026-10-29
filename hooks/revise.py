@@ -13,6 +13,9 @@ def on_pre_build(config):
 
 
 def on_page_markdown(markdown, page, config, files):
+    if page.file.src_uri == "index.md":
+        count = sum(1 for f in files if f.src_uri.startswith("linux/") and f.src_uri.endswith(".md") and f.src_uri != "linux/index.md")
+        markdown = markdown.replace("{{ linux_chapters }}", str(count))
     in_block = False
     for line in markdown.splitlines():
         if line.startswith("!!! question"):

@@ -69,6 +69,7 @@ nav:
       - Keyboard Shortcuts: linux/keyboard-shortcuts.md
       - Permissions: linux/permissions.md
       - Processes: linux/processes.md
+      - systemd & Services: linux/systemd.md
       - vi / vim: linux/vim.md
       - Package Management: linux/package-management.md
       - Networking: linux/networking.md
