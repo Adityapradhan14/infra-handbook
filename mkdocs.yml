@@ -75,6 +75,8 @@ nav:
       - Networking: linux/networking.md
       - Finding Files: linux/finding-files.md
       - Archiving & Backup: linux/archiving-and-backup.md
-      - Bash Basics: linux/bash-basics.md
-      - Conditionals, Loops & Functions: linux/conditionals-and-loops.md
-      - Script Safety: linux/script-safety.md
+  - Bash:
+      - bash/index.md
+      - Bash Basics: bash/bash-basics.md
+      - Conditionals, Loops & Functions: bash/conditionals-and-loops.md
+      - Script Safety: bash/script-safety.md

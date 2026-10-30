@@ -44,7 +44,7 @@
 * `#` → comment
 * `;` → run commands one after another
 * `&&` → run next only if previous succeeded | `||` → run next only if previous failed
-* `>` `<` `|` → redirect, input, pipe (see [Redirection & Pipes](redirection.md))
+* `>` `<` `|` → redirect, input, pipe (see [Redirection & Pipes](../linux/redirection.md))
 * `{ }` → group in same shell | `( )` → group in subshell
 * `~` → home | `*` → any chars | `?` → one char
 
