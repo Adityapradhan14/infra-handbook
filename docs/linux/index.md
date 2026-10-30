@@ -41,5 +41,13 @@ Shell and system fundamentals for day-to-day ops work. The chapters are in readi
     IPs, routes, ports, DNS, `curl`, SSH
 15. [Finding Files](finding-files.md)
     `locate`, `find` tests and actions
+16. [Archiving & Backup](archiving-and-backup.md)
+    `tar`, `gzip`, `rsync`, archive vs compress
+17. [Bash Basics](bash-basics.md)
+    Arguments, command types, shebang, variables, expansion, arithmetic
+18. [Conditionals, Loops & Functions](conditionals-and-loops.md)
+    Exit codes, `&&` / `||`, `[[ ]]`, tests, loops, `case`, functions
+19. [Script Safety](script-safety.md)
+    `set -euo pipefail`, `trap`, `mktemp`, common pitfalls
 
 </div>
