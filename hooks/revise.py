@@ -1,21 +1,35 @@
 """Collect every bullet inside an `!!! question` callout and publish it as
 assets/revise.json, which the home page uses for its "Revise one" panel.
-Runs on every build, so new chapters are picked up automatically."""
+Also replaces {{ <section>_chapters }} on the home page with the number of
+chapters in docs/<section>/ (index.md excluded), e.g. {{ linux_chapters }},
+{{ bash_chapters }}. Runs on every build, so new chapters and new sections
+are picked up automatically."""
 import json
 import os
 import re
 
 _points = []
+_COUNT = re.compile(r"\{\{ (\w+)_chapters \}\}")
 
 
 def on_pre_build(config):
     _points.clear()
 
 
+def _chapter_count(section, files):
+    prefix = section.replace("_", "-") + "/"
+    return sum(
+        1
+        for f in files
+        if f.src_uri.startswith(prefix)
+        and f.src_uri.endswith(".md")
+        and f.src_uri != prefix + "index.md"
+    )
+
+
 def on_page_markdown(markdown, page, config, files):
     if page.file.src_uri == "index.md":
-        count = sum(1 for f in files if f.src_uri.startswith("linux/") and f.src_uri.endswith(".md") and f.src_uri != "linux/index.md")
-        markdown = markdown.replace("{{ linux_chapters }}", str(count))
+        markdown = _COUNT.sub(lambda m: str(_chapter_count(m.group(1), files)), markdown)
     in_block = False
     for line in markdown.splitlines():
         if line.startswith("!!! question"):
