@@ -6,6 +6,7 @@
 
 * `-e` → stop when a command fails
 * `-u` → error on unset variable → stops `$dirr` typo becoming `rm -rf /*`
+* `${3:-}` → empty if `$3` missing → stops `set -u` from erroring on optional args
 * `-o pipefail` → pipe fails if any part fails, not just last
 * `-e` doesn't catch failures inside `if` or before `&&` `||` → safety net, not guarantee
 

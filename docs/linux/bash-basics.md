@@ -32,6 +32,7 @@
 * `.sh` extension means nothing to Linux → first line decides
 * `/usr/bin/env bash` → finds bash in `PATH` → more portable than `/bin/bash`
 * Runnable needs → `chmod +x` + shebang → run with `./script.sh`
+* `./script.sh` → `./` needed because current dir is not in `PATH`
 * `bash script.sh` → shebang ignored, bash already chosen
 
 ## Special characters
