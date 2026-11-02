@@ -74,14 +74,14 @@ nav:
       - Package Management: linux/package-management.md
       - Networking: linux/networking.md
       - Finding Files: linux/finding-files.md
-  - Terraform:
-      - terraform/index.md
-      - IaC & Terraform: terraform/iac-and-terraform.md
-      - HCL Syntax: terraform/hcl-syntax.md
-      - Providers & Versioning: terraform/providers.md
       - Archiving & Backup: linux/archiving-and-backup.md
   - Bash:
       - bash/index.md
       - Bash Basics: bash/bash-basics.md
       - Conditionals, Loops & Functions: bash/conditionals-and-loops.md
       - Script Safety: bash/script-safety.md
+  - Terraform:
+      - terraform/index.md
+      - IaC & Terraform: terraform/iac-and-terraform.md
+      - HCL Syntax: terraform/hcl-syntax.md
+      - Providers & Versioning: terraform/providers.md

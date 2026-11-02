@@ -18,7 +18,7 @@ hide:
 <span class="out">├── <a href="linux/">linux/</a>        <span class="s">{{ linux_chapters }} chapters</span></span>
 <span class="out">├── <a href="bash/">bash/</a>         <span class="s">{{ bash_chapters }} chapters</span></span>
 <span class="out">├── <span class="dim">aws/</span>          <span class="s">next</span></span>
-<span class="out">├── <span class="dim">terraform/</span>    <span class="s">planned</span></span>
+<span class="out">├── <a href="terraform/">terraform/</a>    <span class="s">{{ terraform_chapters }} chapters</span></span>
 <span class="out">├── <span class="dim">docker/</span>       <span class="s">planned</span></span>
 <span class="out">├── <span class="dim">kubernetes/</span>   <span class="s">planned</span></span>
 <span class="out">└── <span class="dim">ci-cd/</span>        <span class="s">planned</span></span></pre>
