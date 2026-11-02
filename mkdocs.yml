@@ -85,3 +85,5 @@ nav:
       - IaC & Terraform: terraform/iac-and-terraform.md
       - HCL Syntax: terraform/hcl-syntax.md
       - Providers & Versioning: terraform/providers.md
+      - AWS Auth & S3: terraform/aws-auth-and-s3.md
+      - State & Remote Backend: terraform/state-and-remote-backend.md
