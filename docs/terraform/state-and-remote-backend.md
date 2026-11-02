@@ -105,13 +105,69 @@ Create it outside this config, by hand or in a separate bootstrap config.
 aws s3api create-bucket --bucket your-terraform-state-bucket --region us-east-1
 aws s3api put-bucket-versioning --bucket your-terraform-state-bucket \
   --versioning-configuration Status=Enabled
+aws s3api put-bucket-encryption --bucket your-terraform-state-bucket \
+  --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
 aws s3api put-public-access-block --bucket your-terraform-state-bucket \
   --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+
+# verify
+aws s3api get-bucket-versioning --bucket your-terraform-state-bucket   # "Status": "Enabled"
+aws s3api get-bucket-encryption --bucket your-terraform-state-bucket   # "SSEAlgorithm": "AES256"
 ```
 
 * Any region other than `us-east-1` → add `--create-bucket-configuration LocationConstraint=ap-south-1`
 * Don't store state in a bucket the same config creates → chicken-and-egg on `init`, and `destroy` would delete the bucket holding its own state
 * Versioning → every apply keeps the old state as a previous version, the backend equivalent of `.backup`, but keeps all of them
+* Encryption → S3 already encrypts with AES256 by default; setting it makes it explicit
+* Two buckets, two jobs → the backend bucket only stores state and is never in the config | a `resource "aws_s3_bucket"` is infra the config creates and destroys
+
+## The state bucket as code (bootstrap)
+
+The same bucket written in Terraform, in its own folder (e.g. `state-bootstrap/`) whose own state stays local.
+
+```hcl
+resource "aws_s3_bucket" "tf_state" {
+  bucket = "your-terraform-state-bucket"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "aws_s3_bucket_versioning" "tf_state" {
+  bucket = aws_s3_bucket.tf_state.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "tf_state" {
+  bucket = aws_s3_bucket.tf_state.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "tf_state" {
+  bucket                  = aws_s3_bucket.tf_state.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+```
+
+* One bucket + three settings → since AWS provider v4 every bucket setting is its own resource pointing at the bucket
+* `prevent_destroy = true` → any plan that would delete the bucket errors out instead
+* `bucket = aws_s3_bucket.tf_state.id` → `type.name.attribute`; for S3 the `id` is the bucket name, and the reference makes the settings wait for the bucket
+* Same local name `tf_state` on all four → allowed because the types differ, so the addresses are unique; it's a convention showing they belong together
+* `"aws:kms"` instead of `"AES256"` → uses a KMS key (`aws/s3` if none is given), adds key access control and audit logs; add `bucket_key_enabled = true` to cut KMS calls
+* An existing bucket (e.g. made by a script) can't be written like this directly → `apply` fails with "already exists"; it has to be imported (see Import below) or created under a new name
+* `plan` → `4 to add`
 
 ## S3 native state locking
 
@@ -181,16 +237,144 @@ Lock Info:
 * A saved plan made before someone else's apply → `Error: Saved plan is stale`, must re-plan
 * Real fix → Git as the single source of truth, PRs with `plan` in CI, `apply` only from `main` via CI
 
+## After destroy
+
+* `terraform destroy` deletes the resources, not the state file → the state stays in S3 with `"resources": []`
+* `serial` goes up (destroy is a write), `lineage` stays the same → the next `apply` continues the same history
+* `terraform state list` → prints nothing
+* With versioning on → every old copy and the `.tflock` delete markers stay visible under Show versions
+* Delete the state object only when the config is retired for good → `aws s3 rm s3://<bucket>/dev/terraform.tfstate`
+
 ## State commands
 
-* `terraform state list` → every resource Terraform manages
-* `terraform state show aws_vpc.my_vpc` → all stored attributes of one resource
-* `terraform state pull` → download and print the current state (works with remote backends)
-* `terraform state mv <old> <new>` → rename or move a resource in state without destroying it
-* `terraform state rm <address>` → stop managing a resource, the real resource is not deleted
-* `terraform import <address> <id>` → bring an existing resource under management
+None of these touch AWS; they only read or edit the state file. Only `apply` and `destroy` change real infra.
+
+* `terraform state list` → every address Terraform manages, one per line
+
+```
+aws_s3_bucket.first_bucket
+aws_s3_bucket_server_side_encryption_configuration.first_bucket
+aws_s3_bucket_versioning.first_bucket
+aws_vpc.my_vpc
+```
+
+* `terraform state show aws_vpc.my_vpc` → every stored attribute of one resource (`id`, `arn`, `cidr_block`, `tags`, `owner_id`); takes the full address from `state list`
+* `terraform state pull` → downloads the state and prints the JSON; the only way to see the remote file from the terminal | `terraform state pull | grep serial`
+* `terraform state mv <old> <new>` → rename a resource in state
+* `terraform state rm <address>` → Terraform forgets the resource, it keeps running in AWS
+* `terraform state push` → overwrite remote state with a local file; disaster recovery only
+* `terraform show` → readable view of the whole current state
 * `terraform plan -refresh-only` → show drift without changing anything
-* `terraform show` → human-readable view of the current state
+
+| Command | Changes state | Changes AWS |
+|---|---|---|
+| `state list` / `show` / `pull` | No | No |
+| `state mv` | Renames an entry | No |
+| `state rm` | Removes an entry | No |
+| `import` | Adds an entry | No |
+| `destroy` | Removes entries | Deletes resources |
+
+* `terraform show` vs `terraform state show` → `show` takes a file (state or saved plan), `state show` takes an address
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Failed to read the given file as a state or plan file` | Ran `terraform show aws_s3_bucket.first_bucket`, so the address was read as a file name | `terraform state show aws_s3_bucket.first_bucket` |
+
+## state mv: rename without recreating
+
+1. Rename the block in code → `resource "aws_vpc" "my_vpc"` becomes `resource "aws_vpc" "main"`, and update every reference to `aws_vpc.main.id`
+2. `terraform plan` → shows destroy `my_vpc` + create `main`, because Terraform sees a removed resource and a new one
+3. `terraform state mv aws_vpc.my_vpc aws_vpc.main`
+4. `terraform plan` → `No changes`, the same VPC is now tracked under the new address
+
+* Use it whenever a resource is renamed or moved into a module, so refactoring never destroys real infra
+
+## state rm vs destroy
+
+| | Real resource in AWS | In state |
+|---|---|---|
+| `terraform destroy` | Deleted | Removed |
+| `terraform state rm` | Still running | Removed |
+
+* After `state rm` → also delete the block from code, otherwise the next `plan` wants to create it again and you get a duplicate
+* Use it to keep a resource while destroying the rest, or to hand it over to another config
+
+## Import
+
+* Import → adopt a resource that already exists in AWS into Terraform's state
+* Needed for anything created outside Terraform → console, CLI, scripts, or a resource dropped with `state rm`
+* `terraform import <address> <real-id>` → address = where it lives in your code, id = which real object it is
+* ID format is on each resource's registry page under Import → VPC = `vpc-...`, S3 bucket and its settings = the bucket name
+* Import only writes state, never code → the resource block must exist first, or it fails with `resource address ... does not exist in the configuration`
+* Code must describe the real resource → change the code to match AWS, never the other way round, until `plan` is clean
+* `state rm` and `import` are an on/off switch → whatever is in state when `destroy` runs gets destroyed, imported or not
+
+## Lab: recovering from state rm
+
+1. `terraform state rm aws_vpc.my_vpc` → VPC still running, Terraform forgot it
+2. Don't `apply` → it would create a second VPC
+3. Find the real ID →
+
+```bash
+aws ec2 describe-vpcs --filters Name=tag:Name,Values=tf-day3-vpc \
+  --query 'Vpcs[].VpcId' --output text
+```
+
+4. `terraform import aws_vpc.my_vpc vpc-xxxxxxxx` → `Import successful!`
+5. `terraform state list` → all resources back | `terraform plan` → `No changes`
+
+* It felt like one command because the resource block was still in code; only the state entry was missing
+
+## Lab: importing a console-made VPC
+
+1. Create a VPC in the console (VPC only)
+2. Read its real settings →
+
+```bash
+aws ec2 describe-vpcs --vpc-ids vpc-xxxxxxxx \
+  --query 'Vpcs[0].{CIDR:CidrBlock,Tags:Tags}'
+```
+
+3. Write a matching block →
+
+```hcl
+resource "aws_vpc" "demo_import_vpc" {
+  cidr_block = "10.0.0.0/24"
+
+  tags = {
+    Name = "import-vpc"
+  }
+}
+```
+
+4. `terraform import aws_vpc.demo_import_vpc vpc-xxxxxxxx`
+5. `terraform plan` →
+    * `No changes` → code matches, done
+    * `~ update in-place` → small difference (tags), fix the code and re-plan
+    * `-/+ must be replaced` → wrong `cidr_block`, don't apply or the console VPC is deleted
+6. From now on Terraform owns it → `terraform destroy` deletes it too | to keep it, `terraform state rm` it and delete the block
+7. Removing the block from code later without `state rm` → the next plan destroys it
+
+## Import block and generated code
+
+Terraform 1.5+ can import from code and write the resource block for you.
+
+```hcl
+import {
+  to = aws_vpc.demo_import_vpc
+  id = "vpc-xxxxxxxx"
+}
+```
+
+```bash
+terraform plan -generate-config-out=generated.tf
+terraform apply                       # 1 imported, 0 added, 0 changed, 0 destroyed
+```
+
+* `generated.tf` → a full resource block filled in from AWS; delete `null` lines and anything not needed
+* Shows in `plan` as `1 to import` → reviewable in a PR, unlike the CLI command
+* Delete the `import {}` block after the apply, its job is done
+* Standard way to bring console-built infra into Terraform without writing every block by hand
 
 !!! tip "Quick revision"
 
@@ -198,6 +382,8 @@ Lock Info:
     * Backend → S3 bucket created outside the config, versioning on, `encrypt = true`, `use_lockfile = true`
     * Native lock → `.tflock` + `If-None-Match`, conflict = `412 PreconditionFailed`
     * Locking protects state, Git and CI protect code
+    * `state rm` = forget, `import` = adopt, `state mv` = rename, none of them touch AWS
+    * Import needs a matching resource block first, then `plan` must say `No changes`
 
 !!! question "Interview points"
 
@@ -211,3 +397,8 @@ Lock Info:
     * How do you separate environments? → different state keys (`dev/`, `prod/`) or separate backends, so a change in one can't affect the other
     * `state rm` vs `destroy`? → `state rm` forgets the resource but leaves it running; `destroy` deletes the real resource
     * Two engineers apply different code against the same state, what happens? → locking serializes the runs but doesn't merge code; the second plan destroys whatever its code lacks, so use PRs and CI-only applies
+    * What does `terraform import` do? → adds an existing real resource to state under an address in your code; it writes state only, so the matching resource block must exist first
+    * How do you bring console-created infra into Terraform? → write matching resource blocks (or use an `import` block with `plan -generate-config-out`), import, then adjust code until `plan` shows no changes
+    * You renamed a resource in code and the plan wants to recreate it, what do you do? → `terraform state mv <old> <new>` so the existing object is tracked under the new address
+    * You ran `state rm` by mistake, how do you recover? → don't apply; find the real ID and `terraform import` it back, then confirm `plan` shows no changes
+    * Does `destroy` delete the state file? → no, it deletes the resources and leaves an empty state with a higher serial
