@@ -88,3 +88,4 @@ nav:
       - AWS Auth & S3: terraform/aws-auth-and-s3.md
       - State & Remote Backend: terraform/state-and-remote-backend.md
       - Variables, Locals & Outputs: terraform/variables-locals-outputs.md
+      - Type Constraints: terraform/type-constraints.md

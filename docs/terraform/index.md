@@ -16,5 +16,7 @@ Notes on Infrastructure as Code with Terraform, written as I work through it: wh
     `terraform.tfstate`, S3 backend, native locking, migration, state commands, `import`
 6. [Variables, Locals & Outputs](variables-locals-outputs.md)
     Input variables, type constraints, locals, `merge`, precedence, `TF_VAR_`, outputs
+7. [Type Constraints](type-constraints.md)
+    `list`, `set`, `map`, `tuple`, `object`, `optional()`, validation blocks
 
 </div>
