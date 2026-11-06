@@ -18,5 +18,7 @@ Notes on Infrastructure as Code with Terraform, written as I work through it: wh
     Input variables, type constraints, locals, `merge`, precedence, `TF_VAR_`, outputs
 7. [Type Constraints](type-constraints.md)
     `list`, `set`, `map`, `tuple`, `object`, `optional()`, validation blocks
+8. [Meta-Arguments](meta-arguments.md)
+    `count`, `for_each`, `depends_on`, `lifecycle`
 
 </div>
