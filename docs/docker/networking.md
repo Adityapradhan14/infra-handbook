@@ -64,20 +64,73 @@
 * `EXPOSE 80` / `PORTS 80/tcp` in `docker ps` → documentation only, nothing published
 * Published → `PORTS 0.0.0.0:8080->80/tcp`
 * Published ports bypass UFW → Docker's iptables rules run before UFW's
+* `PORTS` example → `8888/tcp, 0.0.0.0:8001->80/tcp, [::]:8001->80/tcp`
+* `8888/tcp` → EXPOSE only | `0.0.0.0:8001->80/tcp` → `-p` on every IPv4 address | `[::]:8001->80/tcp` → same for IPv6
 
-## User-defined networks and DNS
+## Network drivers
 
-* Default `docker0` → containers reach each other only by IP
-* Own network (`docker network create mynet`) → built-in DNS at `127.0.0.11` → reach each other by name (`postgres:5432`)
+* Driver → the type of network → how Docker wires the container
+
+| Driver | How it wires the container | Container gets | When |
+|---|---|---|---|
+| `bridge` | veth cable into a software switch on this host (default) | Own IP from the bridge's range | Most single-host use |
+| `host` | Nothing, uses the host's network namespace | Host's IPs and ports | Max performance, host-level tools, port conflicts possible |
+| `null` (`none`) | Nothing | Only `lo` | Fully isolated jobs |
+| `overlay` | Bridge spanning multiple hosts, tunnels between machines | IP valid across hosts | Swarm / multi-host |
+| `macvlan` / `ipvlan` | Straight onto the physical LAN | IP from the router, like a real device | Container must look like a real device |
+
+* `docker network ls` → mine shows `bridge` (= `docker0`), `host`, `none`, `kind` (bridge made by kind, Kubernetes-in-Docker)
+* `host` and `none` → built-in modes, always exist, can't be deleted
+* `docker network` → `connect`, `create`, `disconnect`, `inspect`, `ls`, `prune`, `rm`
+
+## User-defined bridge networks
+
+* `docker network create custom --driver bridge` → new, separate switch → host interface `br-<network id>` (e.g. `br-d0340428...`)
+* Subnet → Docker picks the next free range → `172.17` = `docker0`, `172.18` = `kind`, so `custom` got `172.19.0.0/16`
+* Gateway → `172.19.0.1` → the bridge's own IP, same role as `docker0`'s `172.17.0.1`
+* IPs handed out in order → first container `.2`, then `.3`...
+* `--network custom` on `docker run` → join that network instead of the default
+* `docker network inspect custom` → subnet, gateway, attached containers with IP and MAC
+* `IPsInUse: 6` → 3 containers + 3 reserved (`.0` network address, `.1` gateway, `.255.255` broadcast)
+* `DynamicIPsAvailable: 65530` → `/16` = 65,536 addresses − 6
+* `docker network rm custom` → only works when no container is attached
+
+## DNS by name
+
+* Default `docker0` → no DNS → containers reach each other only by IP
+* User-defined network → built-in DNS server at `127.0.0.11` inside each container → every container's name registered → reach each other by name (`postgres:5432`)
+* `ping app4` → resolves to `app4.custom` → `<name>.<network>`
+* Container IPs change on every restart, names don't → always use a user-defined network for apps that talk to each other
 * Compose creates such a network automatically → services find each other by service name
 
-| Driver | Meaning | When |
+## Isolation and multiple networks
+
+* Networks are isolated from each other → container on `custom` can't reach one on `docker0`, by IP or name → Docker's iptables rules block traffic between bridges
+* `docker network connect custom app1` → plugs a second cable into a running container
+* app1 then has two network cards → `eth0` `172.17.0.2` on `docker0` + `eth1` `172.19.0.4` on `custom` → check with `docker exec app1 ip -br a`
+* Only way across two networks → a container connected to both
+* `docker network disconnect custom app1` → unplug it again
+
+## Host network mode
+
+* `docker run --rm -d --name nodeexporter --network host prom/node-exporter`
+* No own network namespace → no `docker0`, no veth, no `-p` → listens on the host's port 9100 directly → `PORTS` empty
+* Why for Node Exporter → it reports the host's metrics, including real interfaces (`wlo1`, `docker0`) → in bridge mode it would see only its own `eth0`
+* Trade-off → no network isolation, port 9100 taken on the host itself → two can't run at once
+* Fuller recommended run → `--network host --pid host -v /:/host:ro,rslave prom/node-exporter --path.rootfs=/host` → also reads host processes and disks
+
+| `docker inspect` field | Value | Meaning |
 |---|---|---|
-| `bridge` | Private virtual network on this host (default) | Most single-host use |
-| `host` | No isolation, uses host network directly | Max performance, port conflicts possible |
-| `none` | No network | Fully isolated jobs |
-| `overlay` | Network across multiple hosts | Swarm / multi-host |
-| `macvlan` | Own MAC and IP on the physical LAN | Container looks like a real device |
+| `NetworkMode` | `host` | No own network namespace |
+| `IPAddress` | `""` | No container IP, uses the host's |
+| `SandboxKey` | `/var/run/docker/netns/default` | The host's network namespace |
+| `Ports` / `PortBindings` | `{}` | Nothing to forward |
+| `ExposedPorts` | `9100/tcp` | EXPOSE, documentation only |
+| `Hostname` | host's hostname | Shared with the host too |
+| `AutoRemove` | `true` | `--rm` |
+| `User` | `nobody` | Runs unprivileged |
+| `Entrypoint` | `/bin/node_exporter` | No CMD, ENTRYPOINT is the whole command |
+| `GraphDriver` | `LowerDir`, `UpperDir`, `MergedDir` | Read-only image layers, writable layer, the merged `/` → see [Images & Storage](images-and-storage.md) |
 
 ## My machine
 
@@ -116,6 +169,70 @@ bridge link
 | `PORTS` shows only `80/tcp`, browser can't reach nginx | No `-p`, `80/tcp` is just EXPOSE | `docker run -d -p 8080:80 nginx` |
 | `localhost:8000` connection refused | Nothing published on host port 8000 | Add `-p 8000:80` |
 
+## Lab: default bridge vs custom network
+
+```bash
+docker network ls
+docker run --rm -d --name app1 -p 8000:80 kiran2361993/troubleshootingtools:v1
+docker run --rm -d --name app2 -p 8001:80 kiran2361993/troubleshootingtools:v1
+docker inspect app1 | grep -i IPAddress
+docker inspect app2 | grep -i IPAddress
+docker exec -it app1 bash
+ping 172.17.0.3
+exit
+
+docker network create custom --driver bridge
+docker run --rm -d --name app3 -p 8003:80 --network custom kiran2361993/troubleshootingtools:v1
+docker run --rm -d --name app4 -p 8004:80 --network custom kiran2361993/troubleshootingtools:v1
+docker inspect app3 | grep -i IPAddress
+docker exec -it app3 bash
+ping 172.19.0.3
+exit
+
+docker network connect custom app1
+docker network inspect custom
+docker exec -it app1 bash
+ping app4
+ping app3
+ping app2
+exit
+docker stop $(docker ps -aq)
+```
+
+* app1 `172.17.0.2` → app2 `172.17.0.3` by IP → works, ~0.1 ms → app1 `eth0` → veth → `docker0` → veth → app2
+* `ttl=64` unchanged → no router in between, same switch
+* app3 `172.19.0.2` → app4 `172.19.0.3` → works on `custom`
+* After `network connect` → app1 gets `172.19.0.4` on `custom` as well
+
+| From app1 | Result | Why |
+|---|---|---|
+| `ping 172.19.0.3` | Works | app1 now has a cable on `custom` |
+| `ping app4` | Works, `app4.custom` | Built-in DNS on the user-defined network |
+| `ping app3` | Works | Same |
+| `ping app2` | `Name or service not known` | app2 only on the default bridge → no DNS there (`ping 172.17.0.3` still works) |
+
+## Lab: Node Exporter on the host network
+
+```bash
+docker run --rm -d --name nodeexporter --network host prom/node-exporter
+docker ps
+docker inspect nodeexporter
+curl -s localhost:9100/metrics | head
+curl -s localhost:9100/metrics | grep node_network_receive_bytes_total
+docker stop nodeexporter
+docker network rm custom
+docker network ls
+```
+
+* `docker ps` → `PORTS` empty → no forwarding in host mode
+* `node_network_receive_bytes_total` → lists my real interfaces (`wlo1`, `docker0`, `CloudflareWARP`) → it sees the host's network
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `ping app2: Name or service not known` | app2 is on the default bridge, which has no DNS | Put both on a user-defined network, or use the IP |
+| `unknown flag: --netwrok` | Typo | `--network host` |
+| `docker network rm` fails | Containers still attached | Stop or disconnect them first |
+
 !!! question "Interview points"
 
     * What is docker0? → a Linux bridge (software switch) created by dockerd; containers plug into it via veth pairs and use 172.17.0.1 as their gateway
@@ -127,3 +244,11 @@ bridge link
     * Why can two containers use port 80 but not the same host port? → each has its own network namespace, but the host has only one of each port
     * Default bridge vs user-defined network? → user-defined networks have built-in DNS so containers reach each other by name
     * Why does a published port ignore UFW? → Docker's iptables rules are evaluated before UFW's
+    * What is a network driver? → the type of network, i.e. how Docker wires the container: bridge, host, none, overlay, macvlan/ipvlan
+    * Can a container on one user-defined network reach a container on another? → no, bridges are isolated by iptables; connect the container to both networks to cross
+    * How do you add a running container to another network? → docker network connect <network> <container>; it gets a second interface (eth1)
+    * Which DNS server do containers on a user-defined network use? → Docker's embedded DNS at 127.0.0.11
+    * Why use names instead of container IPs? → IPs change when containers restart, names stay the same
+    * When would you use --network host? → when the container must see or serve on the host's network directly, e.g. Node Exporter; you lose isolation and can get port conflicts
+    * Why does docker ps show no ports in host mode? → nothing is forwarded; the app listens on the host's port directly
+    * Why does a /16 network show 65530 available IPs with 3 containers? → 65,536 minus the network address, gateway, broadcast and the 3 containers

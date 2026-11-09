@@ -15,7 +15,7 @@
 5. [Images & Storage](images-and-storage.md)
     Layers, copy-on-write, tags vs digests, Dockerfile, volumes
 6. [Networking](networking.md)
-    Ports, `docker0`, veth pairs, NAT, `-p` port forwarding
+    Ports, `docker0`, drivers, custom networks, DNS, host mode
 7. [Namespaces](namespaces.md)
     The 7 namespaces, `nsenter`, `lsns`, `unshare`
 8. [Logs & Files on Disk](logs-and-files.md)

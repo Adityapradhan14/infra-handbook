@@ -91,6 +91,8 @@ docker system df
 |---|---|---|
 | Same layers downloading again minutes later | Image deleted, or that terminal talks to a different daemon/context | Compare `docker context ls`, `docker info`, `docker images` in both terminals |
 | Pull feels slow | Cloudflare WARP tunnel (MTU 1300, extra hop) | `time docker pull` with and without `warp-cli disconnect` |
+| `pull access denied ... repository does not exist or may require 'docker login'` | Typo in the repo/username (Docker Hub gives the same message for missing and private repos) | Check the exact name on Docker Hub |
+| `manifest for ...:latest not found: manifest unknown` | Repo exists but has no `latest` tag; no tag means Docker assumes `:latest` | Use a tag that exists, e.g. `:v1` |
 
 !!! question "Interview points"
 
@@ -98,6 +100,7 @@ docker system df
     * What is copy-on-write? → changing a file from a lower layer copies it up into the container's writable layer first; the image is never modified
     * Why doesn't deleting a file in a later layer shrink the image? → it only adds a whiteout marker; the file still exists in the earlier layer
     * Does latest mean newest? → no, it is just a default tag name that can point anywhere
+    * docker pull says manifest unknown for :latest? → the repo has no latest tag; pass an existing tag explicitly
     * Tag vs digest? → tag is mutable, digest (sha256) always points to the exact same image
     * RUN vs CMD? → RUN executes at build time; CMD is the default command each time a container starts
     * CMD vs ENTRYPOINT? → ENTRYPOINT is the fixed executable; CMD supplies default arguments that docker run can replace

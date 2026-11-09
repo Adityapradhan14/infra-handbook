@@ -105,6 +105,8 @@ docker rm $(docker ps -aq)
 | `unknown flag: --rm` | Left out `run`, flags belong to the subcommand | `docker run --rm -d --name app1 nginx` |
 | 10 containers `Exited (0)` still listed | Stopped containers aren't deleted | `docker rm $(docker ps -aq)` |
 | `ps -a` empty after `docker stop` | Started with `--rm` | Expected |
+| `docker exect`: `unknown shorthand flag: 'i'` | Typo, `exect` isn't a command | `docker exec` |
+| `'docker exec' requires at least 2 arguments` | Gave the command but no container | `docker exec -it app1 bash` → container + command |
 
 !!! question "Interview points"
 
