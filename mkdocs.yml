@@ -90,3 +90,13 @@ nav:
       - Variables, Locals & Outputs: terraform/variables-locals-outputs.md
       - Type Constraints: terraform/type-constraints.md
       - Meta-Arguments: terraform/meta-arguments.md
+  - Docker:
+      - docker/index.md
+      - Introduction: docker/introduction.md
+      - Architecture: docker/architecture.md
+      - Install & Upgrade: docker/installation.md
+      - Containers: docker/containers.md
+      - Images & Storage: docker/images-and-storage.md
+      - Networking: docker/networking.md
+      - Namespaces: docker/namespaces.md
+      - Logs & Files on Disk: docker/logs-and-files.md
