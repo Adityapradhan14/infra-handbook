@@ -102,3 +102,5 @@ nav:
       - Logs & Files on Disk: docker/logs-and-files.md
       - Volumes & Bind Mounts: docker/volumes-and-bind-mounts.md
       - The Docker Socket: docker/docker-socket.md
+      - Dockerfile: docker/dockerfile.md
+      - Image Layers, Tags & Cleanup: docker/image-layers-and-tags.md

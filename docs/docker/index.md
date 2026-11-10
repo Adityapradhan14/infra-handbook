@@ -24,5 +24,9 @@
     `-v` vs `--mount`, named volumes, bind mounts, `tmpfs`, backup
 10. [The Docker Socket](docker-socket.md)
     `docker.sock`, mounting it, why it is root, Portainer
+11. [Dockerfile](dockerfile.md)
+    `FROM`, `RUN` vs `CMD`, `ARG` vs `ENV`, building and running an image
+12. [Image Layers, Tags & Cleanup](image-layers-and-tags.md)
+    layers, build cache, image ID vs tag, `docker history`, prune, secrets
 
 </div>
