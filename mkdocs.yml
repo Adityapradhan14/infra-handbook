@@ -100,3 +100,5 @@ nav:
       - Networking: docker/networking.md
       - Namespaces: docker/namespaces.md
       - Logs & Files on Disk: docker/logs-and-files.md
+      - Volumes & Bind Mounts: docker/volumes-and-bind-mounts.md
+      - The Docker Socket: docker/docker-socket.md

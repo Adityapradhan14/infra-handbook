@@ -20,5 +20,9 @@
     The 7 namespaces, `nsenter`, `lsns`, `unshare`
 8. [Logs & Files on Disk](logs-and-files.md)
     `/var/lib/docker`, the `-json.log` file, `docker logs`
+9. [Volumes & Bind Mounts](volumes-and-bind-mounts.md)
+    `-v` vs `--mount`, named volumes, bind mounts, `tmpfs`, backup
+10. [The Docker Socket](docker-socket.md)
+    `docker.sock`, mounting it, why it is root, Portainer
 
 </div>
