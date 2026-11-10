@@ -133,6 +133,7 @@ lifecycle {
 * `prevent_destroy` → any plan that would destroy it errors out → safety rail for prod databases
 * `ignore_changes` → ignore drift on the listed attributes
 * `replace_triggered_by` → replace this resource when the listed one changes
+* Full notes, labs and gotchas for each rule → [Lifecycle Rules](lifecycle.md)
 
 ## Lab: count and for_each on S3 buckets
 

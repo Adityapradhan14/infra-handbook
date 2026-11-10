@@ -90,6 +90,7 @@ nav:
       - Variables, Locals & Outputs: terraform/variables-locals-outputs.md
       - Type Constraints: terraform/type-constraints.md
       - Meta-Arguments: terraform/meta-arguments.md
+      - Lifecycle Rules: terraform/lifecycle.md
   - Docker:
       - docker/index.md
       - Introduction: docker/introduction.md

@@ -20,5 +20,7 @@ Notes on Infrastructure as Code with Terraform, written as I work through it: wh
     `list`, `set`, `map`, `tuple`, `object`, `optional()`, validation blocks
 8. [Meta-Arguments](meta-arguments.md)
     `count`, `for_each`, `depends_on`, `lifecycle`
+9. [Lifecycle Rules](lifecycle.md)
+    `create_before_destroy`, `prevent_destroy`, `ignore_changes`, `precondition`, `postcondition`, `replace_triggered_by`
 
 </div>
