@@ -20,9 +20,9 @@
 * `ADD` → like `COPY` but also extracts tarballs and fetches URLs, prefer `COPY`
 * `WORKDIR` → set the working directory, created if missing
 * `EXPOSE` → documents the port the app uses, does not publish it, `-p` does
-* `USER` → run the rest as a non-root user
+* `USER` → run the rest as a non-root user, see [EXPOSE, COPY, WORKDIR & USER](expose-copy-workdir-user.md)
 * `CMD` → default command when a container starts, only the last one counts, `docker run image other-cmd` overrides it
-* `ENTRYPOINT` → fixed command, `CMD` then becomes its default arguments
+* `ENTRYPOINT` → fixed command, `CMD` then becomes its default arguments, see [ENTRYPOINT & CMD](entrypoint-and-cmd.md)
 * `.dockerignore` → paths left out of the build context → `.git`, `.venv`, `.env`
 
 ## RUN vs CMD

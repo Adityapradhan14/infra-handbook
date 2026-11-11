@@ -26,7 +26,11 @@
     `docker.sock`, mounting it, why it is root, Portainer
 11. [Dockerfile](dockerfile.md)
     `FROM`, `RUN` vs `CMD`, `ARG` vs `ENV`, building and running an image
-12. [Image Layers, Tags & Cleanup](image-layers-and-tags.md)
+12. [ENTRYPOINT & CMD](entrypoint-and-cmd.md)
+    fixed command vs default arguments, `--entrypoint`, exit codes, main process
+13. [EXPOSE, COPY, WORKDIR & USER](expose-copy-workdir-user.md)
+    `EXPOSE` vs `-p`, `COPY` vs `ADD`, non-root `USER`, `-f`
+14. [Image Layers, Tags & Cleanup](image-layers-and-tags.md)
     layers, build cache, image ID vs tag, `docker history`, prune, secrets
 
 </div>

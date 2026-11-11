@@ -104,4 +104,6 @@ nav:
       - Volumes & Bind Mounts: docker/volumes-and-bind-mounts.md
       - The Docker Socket: docker/docker-socket.md
       - Dockerfile: docker/dockerfile.md
+      - ENTRYPOINT & CMD: docker/entrypoint-and-cmd.md
+      - EXPOSE, COPY, WORKDIR & USER: docker/expose-copy-workdir-user.md
       - Image Layers, Tags & Cleanup: docker/image-layers-and-tags.md
