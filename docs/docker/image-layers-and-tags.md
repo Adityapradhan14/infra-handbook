@@ -8,7 +8,7 @@
 * `RUN`, `COPY`, `ADD` → add data | `ENV`, `ARG`, `LABEL`, `CMD`, `EXPOSE` → 0B, metadata only
 * A container is the image layers plus one thin writable layer on top → why data is lost on `docker rm`, see [volumes](volumes-and-bind-mounts.md)
 * Layers are shared between images and containers → a second container from the same image copies nothing
-* Deleting a file in a later layer does not shrink the image → remove it in the same `RUN` that created it
+* Deleting a file in a later layer does not shrink the image → remove it in the same `RUN` that created it, or leave the build tools behind with a [multi-stage build](multi-stage-and-distroless.md)
 * `docker history aditya/custom:v1` → layers newest first with size and the instruction that made them
 * `<missing>` in the `IMAGE` column → normal, those layers have no local image ID of their own
 * `docker history --no-trunc` → full instructions, including `ENV` values

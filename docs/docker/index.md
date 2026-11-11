@@ -30,7 +30,9 @@
     fixed command vs default arguments, `--entrypoint`, exit codes, main process
 13. [EXPOSE, COPY, WORKDIR & USER](expose-copy-workdir-user.md)
     `EXPOSE` vs `-p`, `COPY` vs `ADD`, non-root `USER`, `-f`
-14. [Image Layers, Tags & Cleanup](image-layers-and-tags.md)
+14. [Multi-Stage Builds & Distroless](multi-stage-and-distroless.md)
+    `AS build`, `COPY --from`, distroless images, no shell, 750MB to 292MB
+15. [Image Layers, Tags & Cleanup](image-layers-and-tags.md)
     layers, build cache, image ID vs tag, `docker history`, prune, secrets
 
 </div>
