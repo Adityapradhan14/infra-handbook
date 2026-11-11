@@ -1,0 +1,3121 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Field notes, runbooks and labs on Linux, cloud and infrastructure">
+      
+      
+        <meta name="author" content="Aditya Pradhan">
+      
+      
+        <link rel="canonical" href="https://adityapradhan14.github.io/infra-handbook/terraform/state-and-remote-backend/">
+      
+      
+        <link rel="prev" href="../aws-auth-and-s3/">
+      
+      
+        <link rel="next" href="../variables-locals-outputs/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>State & Remote Backend - Infra Handbook</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#state-remote-backend" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Infra Handbook" class="md-header__button md-logo" aria-label="Infra Handbook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Infra Handbook
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              State & Remote Backend
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Adityapradhan14/infra-handbook" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    infra-handbook
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../linux/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Linux
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../bash/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Bash
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Terraform
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../docker/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Docker
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Infra Handbook" class="md-nav__button md-logo" aria-label="Infra Handbook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Infra Handbook
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Adityapradhan14/infra-handbook" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    infra-handbook
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../linux/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linux
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Linux
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/shell-basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Shell
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/navigation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/exploring-the-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploring the System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/files-and-directories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & Directories
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/working-with-commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working with Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/redirection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Redirection & Pipes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/shell-expansion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Expansion & Quoting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/keyboard-shortcuts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keyboard Shortcuts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/permissions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/processes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Processes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    systemd & Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/vim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vi / vim
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/package-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/networking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Networking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/finding-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Finding Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/archiving-and-backup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archiving & Backup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../bash/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bash
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bash
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bash/bash-basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bash Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bash/conditionals-and-loops/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conditionals, Loops & Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bash/script-safety/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Script Safety
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terraform
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Terraform
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iac-and-terraform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IaC & Terraform
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hcl-syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HCL Syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Providers & Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws-auth-and-s3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Auth & S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State & Remote Backend
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State & Remote Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-terraform-updates-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Terraform updates infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-state-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The state file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-terraform-needs-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Terraform needs state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problems-with-local-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problems with local state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remote-backend-with-s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remote backend with S3
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-state-bucket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The state bucket
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-state-bucket-as-code-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The state bucket as code (bootstrap)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s3-native-state-locking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S3 native state locking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrating-local-state-to-s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrating local state to S3
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-testing-the-lock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: testing the lock
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#locking-vs-code-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locking vs code conflicts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#after-destroy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        After destroy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-mv-rename-without-recreating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        state mv: rename without recreating
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-rm-vs-destroy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        state rm vs destroy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-recovering-from-state-rm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: recovering from state rm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-importing-a-console-made-vpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: importing a console-made VPC
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import-block-and-generated-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import block and generated code
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../variables-locals-outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Variables, Locals & Outputs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-constraints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Type Constraints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../meta-arguments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meta-Arguments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../docker/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Docker
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install & Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/containers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/images-and-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Images & Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/networking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Networking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/namespaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/logs-and-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs & Files on Disk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/volumes-and-bind-mounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Volumes & Bind Mounts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/docker-socket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Docker Socket
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/dockerfile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dockerfile
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/entrypoint-and-cmd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ENTRYPOINT & CMD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/expose-copy-workdir-user/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXPOSE, COPY, WORKDIR & USER
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/multi-stage-and-distroless/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Stage Builds & Distroless
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/image-layers-and-tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Layers, Tags & Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-terraform-updates-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Terraform updates infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-state-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The state file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-terraform-needs-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Terraform needs state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problems-with-local-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problems with local state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remote-backend-with-s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remote backend with S3
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-state-bucket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The state bucket
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-state-bucket-as-code-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The state bucket as code (bootstrap)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s3-native-state-locking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S3 native state locking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrating-local-state-to-s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrating local state to S3
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-testing-the-lock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: testing the lock
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#locking-vs-code-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locking vs code conflicts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#after-destroy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        After destroy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-mv-rename-without-recreating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        state mv: rename without recreating
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-rm-vs-destroy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        state rm vs destroy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-recovering-from-state-rm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: recovering from state rm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-importing-a-console-made-vpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: importing a console-made VPC
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import-block-and-generated-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import block and generated code
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="state-remote-backend">State &amp; Remote Backend<a class="headerlink" href="#state-remote-backend" title="Permanent link">&para;</a></h1>
+<p><em>Hands-on notes, Terraform course day 4</em></p>
+<h2 id="how-terraform-updates-infrastructure">How Terraform updates infrastructure<a class="headerlink" href="#how-terraform-updates-infrastructure" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Goal → keep the actual state of infra the same as the desired state in code</li>
+<li>Desired state → your <code>.tf</code> files | Recorded state → <code>terraform.tfstate</code> | Real state → what actually exists in AWS</li>
+<li>Every <code>plan</code> / <code>apply</code>:<ol>
+<li>Read the code (desired)</li>
+<li>Read the state file (what Terraform thinks it manages)</li>
+<li>Refresh → ask AWS for the current real values</li>
+<li>Diff → only resources that differ are created, updated or destroyed</li>
+</ol>
+</li>
+<li>Running <code>apply</code> again with no code change → <code>No changes</code>, so Terraform is idempotent</li>
+</ul>
+<h2 id="the-state-file">The state file<a class="headerlink" href="#the-state-file" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>terraform.tfstate</code> → JSON, written after every <code>apply</code></li>
+<li>Maps each resource in code to a real object → <code>aws_vpc.my_vpc</code> ↔ <code>vpc-0abc...</code></li>
+<li>Stores → every attribute (IDs, ARNs, tags, IPs), dependencies, provider info, and outputs</li>
+<li><code>serial</code> → increases on every write | <code>lineage</code> → unique ID of this state's history, stops one state being written over another</li>
+<li><code>terraform.tfstate.backup</code> → the previous version, kept by the local backend only</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"terraform_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.17.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"serial"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"lineage"</span><span class="p">:</span><span class="w"> </span><span class="s2">"140fd82e-..."</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"resources"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"aws_vpc"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"my_vpc"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"instances"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">"attributes"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"vpc-0abc..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"cidr_block"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10.0.0.0/16"</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="why-terraform-needs-state">Why Terraform needs state<a class="headerlink" href="#why-terraform-needs-state" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Code says what should exist, AWS has what does exist → state is the link between the two</li>
+<li>Without it, Terraform can't tell whether <code>aws_vpc.my_vpc</code> already exists or which of 40 VPCs it owns</li>
+<li>Resource removed from code but still in state → Terraform destroys it</li>
+<li>Resource created by hand → not in state, Terraform ignores it until <code>terraform import</code></li>
+<li>State lost → Terraform forgets it owns anything, next <code>apply</code> tries to create everything again (duplicates or <code>AlreadyExists</code> errors)</li>
+<li>Drift → someone changes infra in the console; <code>plan</code> shows the difference and <code>apply</code> puts it back to the code</li>
+</ul>
+<h2 id="problems-with-local-state">Problems with local state<a class="headerlink" href="#problems-with-local-state" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Lives on one laptop → laptop dies or folder is deleted, state is gone</li>
+<li>Team → everyone has a different copy, they overwrite each other</li>
+<li>CI → GitHub Actions can't read your laptop</li>
+<li>Secrets → DB passwords, keys and tokens are stored in plain text, even with <code>sensitive = true</code>; committing it to Git leaks them</li>
+<li>No locking → two <code>apply</code> runs at once can corrupt it</li>
+</ul>
+<h2 id="best-practices">Best practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Never edit the state file by hand → use the <code>terraform state</code> commands</li>
+<li>Store it remotely → S3, Terraform Cloud, GCS, Azure Blob</li>
+<li>Enable locking → no concurrent writes</li>
+<li>Enable versioning on the bucket → roll back to an older state if it gets corrupted</li>
+<li>Separate state per environment → <code>dev/terraform.tfstate</code>, <code>prod/terraform.tfstate</code>, so a dev mistake can't touch prod</li>
+<li>Restrict access → state contains secrets, only Terraform's role and admins should read it</li>
+<li>Encrypt at rest and in transit → <code>encrypt = true</code>, HTTPS</li>
+<li>Never commit it → <code>.gitignore</code> has <code>*.tfstate</code> and <code>*.tfstate.*</code></li>
+</ol>
+<h2 id="remote-backend-with-s3">Remote backend with S3<a class="headerlink" href="#remote-backend-with-s3" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nb">required_providers</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nb">aws</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="na">source</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"hashicorp/aws"</span>
+<span class="w">      </span><span class="na">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"~&gt; 6.0"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kr">backend</span><span class="w"> </span><span class="nv">"s3"</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="na">bucket</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"your-terraform-state-bucket"</span>
+<span class="w">    </span><span class="na">key</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="s2">"dev/terraform.tfstate"</span>
+<span class="w">    </span><span class="na">region</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"us-east-1"</span>
+<span class="w">    </span><span class="na">encrypt</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="no">true</span>
+<span class="w">    </span><span class="na">use_lockfile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">true</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><code>backend "s3"</code> → goes inside the <code>terraform {}</code> block</li>
+<li><code>bucket</code> → must already exist before <code>terraform init</code></li>
+<li><code>key</code> → path of the state object inside the bucket; one bucket can hold many states (<code>dev/</code>, <code>prod/</code>, <code>network/</code>)</li>
+<li><code>region</code> → region of the state bucket, not where resources are deployed; that's the <code>provider</code> block, and the two can differ</li>
+<li><code>encrypt = true</code> → server-side encryption of the state object</li>
+<li><code>use_lockfile = true</code> → S3 native locking</li>
+<li>No variables allowed in the backend block → it's read before variables exist; <code>bucket = var.x</code> fails</li>
+<li>Any change to the backend block → rerun <code>terraform init</code></li>
+</ul>
+<h2 id="the-state-bucket">The state bucket<a class="headerlink" href="#the-state-bucket" title="Permanent link">&para;</a></h2>
+<p>Create it outside this config, by hand or in a separate bootstrap config.</p>
+<div class="highlight"><pre><span></span><code>aws<span class="w"> </span>s3api<span class="w"> </span>create-bucket<span class="w"> </span>--bucket<span class="w"> </span>your-terraform-state-bucket<span class="w"> </span>--region<span class="w"> </span>us-east-1
+aws<span class="w"> </span>s3api<span class="w"> </span>put-bucket-versioning<span class="w"> </span>--bucket<span class="w"> </span>your-terraform-state-bucket<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--versioning-configuration<span class="w"> </span><span class="nv">Status</span><span class="o">=</span>Enabled
+aws<span class="w"> </span>s3api<span class="w"> </span>put-bucket-encryption<span class="w"> </span>--bucket<span class="w"> </span>your-terraform-state-bucket<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--server-side-encryption-configuration<span class="w"> </span><span class="s1">'{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'</span>
+aws<span class="w"> </span>s3api<span class="w"> </span>put-public-access-block<span class="w"> </span>--bucket<span class="w"> </span>your-terraform-state-bucket<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--public-access-block-configuration<span class="w"> </span><span class="nv">BlockPublicAcls</span><span class="o">=</span>true,IgnorePublicAcls<span class="o">=</span>true,BlockPublicPolicy<span class="o">=</span>true,RestrictPublicBuckets<span class="o">=</span><span class="nb">true</span>
+
+<span class="c1"># verify</span>
+aws<span class="w"> </span>s3api<span class="w"> </span>get-bucket-versioning<span class="w"> </span>--bucket<span class="w"> </span>your-terraform-state-bucket<span class="w">   </span><span class="c1"># "Status": "Enabled"</span>
+aws<span class="w"> </span>s3api<span class="w"> </span>get-bucket-encryption<span class="w"> </span>--bucket<span class="w"> </span>your-terraform-state-bucket<span class="w">   </span><span class="c1"># "SSEAlgorithm": "AES256"</span>
+</code></pre></div>
+<ul>
+<li>Any region other than <code>us-east-1</code> → add <code>--create-bucket-configuration LocationConstraint=ap-south-1</code></li>
+<li>Don't store state in a bucket the same config creates → chicken-and-egg on <code>init</code>, and <code>destroy</code> would delete the bucket holding its own state</li>
+<li>Versioning → every apply keeps the old state as a previous version, the backend equivalent of <code>.backup</code>, but keeps all of them</li>
+<li>Encryption → S3 already encrypts with AES256 by default; setting it makes it explicit</li>
+<li>Two buckets, two jobs → the backend bucket only stores state and is never in the config | a <code>resource "aws_s3_bucket"</code> is infra the config creates and destroys</li>
+</ul>
+<h2 id="the-state-bucket-as-code-bootstrap">The state bucket as code (bootstrap)<a class="headerlink" href="#the-state-bucket-as-code-bootstrap" title="Permanent link">&para;</a></h2>
+<p>The same bucket written in Terraform, in its own folder (e.g. <code>state-bootstrap/</code>) whose own state stays local.</p>
+<div class="highlight"><pre><span></span><code><span class="kr">resource</span><span class="w"> </span><span class="nc">"aws_s3_bucket"</span><span class="w"> </span><span class="nv">"tf_state"</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="na">bucket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"your-terraform-state-bucket"</span>
+
+<span class="w">  </span><span class="nb">lifecycle</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="na">prevent_destroy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">true</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">resource</span><span class="w"> </span><span class="nc">"aws_s3_bucket_versioning"</span><span class="w"> </span><span class="nv">"tf_state"</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="na">bucket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">aws_s3_bucket.tf_state.id</span>
+
+<span class="w">  </span><span class="nb">versioning_configuration</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="na">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Enabled"</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">resource</span><span class="w"> </span><span class="nc">"aws_s3_bucket_server_side_encryption_configuration"</span><span class="w"> </span><span class="nv">"tf_state"</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="na">bucket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">aws_s3_bucket.tf_state.id</span>
+
+<span class="w">  </span><span class="nb">rule</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nb">apply_server_side_encryption_by_default</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="na">sse_algorithm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"AES256"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">resource</span><span class="w"> </span><span class="nc">"aws_s3_bucket_public_access_block"</span><span class="w"> </span><span class="nv">"tf_state"</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="na">bucket</span><span class="w">                  </span><span class="o">=</span><span class="w"> </span><span class="nv">aws_s3_bucket.tf_state.id</span>
+<span class="w">  </span><span class="na">block_public_acls</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="no">true</span>
+<span class="w">  </span><span class="na">block_public_policy</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="no">true</span>
+<span class="w">  </span><span class="na">ignore_public_acls</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="no">true</span>
+<span class="w">  </span><span class="na">restrict_public_buckets</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">true</span>
+<span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>One bucket + three settings → since AWS provider v4 every bucket setting is its own resource pointing at the bucket</li>
+<li><code>prevent_destroy = true</code> → any plan that would delete the bucket errors out instead</li>
+<li><code>bucket = aws_s3_bucket.tf_state.id</code> → <code>type.name.attribute</code>; for S3 the <code>id</code> is the bucket name, and the reference makes the settings wait for the bucket</li>
+<li>Same local name <code>tf_state</code> on all four → allowed because the types differ, so the addresses are unique; it's a convention showing they belong together</li>
+<li><code>"aws:kms"</code> instead of <code>"AES256"</code> → uses a KMS key (<code>aws/s3</code> if none is given), adds key access control and audit logs; add <code>bucket_key_enabled = true</code> to cut KMS calls</li>
+<li>An existing bucket (e.g. made by a script) can't be written like this directly → <code>apply</code> fails with "already exists"; it has to be imported (see Import below) or created under a new name</li>
+<li><code>plan</code> → <code>4 to add</code></li>
+</ul>
+<h2 id="s3-native-state-locking">S3 native state locking<a class="headerlink" href="#s3-native-state-locking" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Before → locking needed a separate DynamoDB table (<code>dynamodb_table = "tf-locks"</code>): extra service, extra IAM permissions, extra cost</li>
+<li>Terraform 1.10+ → <code>use_lockfile = true</code>, locking with S3 alone (stable from 1.11); DynamoDB locking is deprecated</li>
+<li>How it works → S3 conditional writes with the <code>If-None-Match</code> header<ol>
+<li>Terraform tries to create <code>&lt;key&gt;.tflock</code>, e.g. <code>dev/terraform.tfstate.tflock</code>, only if it doesn't already exist</li>
+<li>Doesn't exist → the write succeeds, the lock is acquired</li>
+<li>Already exists → S3 rejects it with <code>412 PreconditionFailed</code>, Terraform reports <code>Error acquiring the state lock</code></li>
+<li>Run finishes → the lock file is deleted (shows as a delete marker when versioning is on)</li>
+</ol>
+</li>
+<li>Locks are taken by every command that writes or reads state for a run → <code>plan</code>, <code>apply</code>, <code>destroy</code>, <code>refresh</code></li>
+<li>The second run fails immediately by default → <code>-lock-timeout=5m</code> makes it retry and wait</li>
+<li>Versioning → the course says it's required for native locking; Terraform's docs only strongly recommend it. Enable it anyway, for rollback</li>
+</ul>
+<h2 id="migrating-local-state-to-s3">Migrating local state to S3<a class="headerlink" href="#migrating-local-state-to-s3" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Create the state bucket with versioning</li>
+<li>Add the <code>backend "s3"</code> block</li>
+<li><code>terraform init -migrate-state</code> → answer <code>yes</code> to copy the local state to S3</li>
+<li><code>terraform state pull | head</code> → prints the state from S3</li>
+<li><code>terraform plan</code> → must say <code>No changes</code></li>
+<li>
+<p>Delete the leftover local <code>terraform.tfstate</code> and <code>terraform.tfstate.backup</code> → they are stale, not used anymore, and still contain account IDs and secrets</p>
+</li>
+<li>
+<p><code>.terraform/terraform.tfstate</code> → not infra state; it records which backend this folder uses</p>
+</li>
+<li>Proof the local files were stale → the old backup still had a VPC ID that had since been destroyed and recreated</li>
+</ol>
+<h2 id="lab-testing-the-lock">Lab: testing the lock<a class="headerlink" href="#lab-testing-the-lock" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Terminal 1 → <code>terraform destroy</code>, stop at the <code>Enter a value:</code> prompt (the lock is held while waiting)</li>
+<li>Terminal 2 → <code>terraform destroy</code></li>
+<li>Terminal 2 fails →</li>
+</ol>
+<div class="highlight"><pre><span></span><code>Error: Error acquiring the state lock
+Error message: operation error S3: PutObject, https response error StatusCode: 412
+api error PreconditionFailed: At least one of the pre-conditions you specified did not hold
+Lock Info:
+  ID:        &lt;lock-id&gt;
+  Path:      &lt;state-bucket&gt;/dev/terraform.tfstate
+  Operation: OperationTypeApply
+  Who:       &lt;user&gt;@&lt;hostname&gt;
+  Version:   1.17.0
+</code></pre></div>
+<ol>
+<li>While terminal 1 waits → the S3 console shows <code>dev/terraform.tfstate.tflock</code> next to the state</li>
+<li>
+<p>Answer <code>yes</code> or <code>no</code> in terminal 1 → lock released, <code>.tflock</code> deleted, terminal 2 can run</p>
+</li>
+<li>
+<p><code>Operation: OperationTypeApply</code> → <code>destroy</code> is an <code>apply</code> that removes everything</p>
+</li>
+<li><code>Who</code> → in a team, tells you who is holding the lock</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Error acquiring the state lock</code></td>
+<td>Another run holds the lock</td>
+<td>Wait, or <code>-lock-timeout=5m</code></td>
+</tr>
+<tr>
+<td>Lock stays after a crash</td>
+<td>Process killed mid-run, <code>.tflock</code> left behind</td>
+<td><code>terraform force-unlock &lt;lock-id&gt;</code>, only when no run is live</td>
+</tr>
+<tr>
+<td><code>Backend configuration changed</code></td>
+<td>Backend block edited</td>
+<td><code>terraform init -migrate-state</code> or <code>-reconfigure</code></td>
+</tr>
+<tr>
+<td><code>NoSuchBucket</code> on init</td>
+<td>State bucket doesn't exist</td>
+<td>Create it first</td>
+</tr>
+<tr>
+<td><code>AccessDenied</code> on init</td>
+<td>IAM user can't read/write the bucket</td>
+<td>Grant <code>s3:ListBucket</code>, <code>s3:GetObject</code>, <code>s3:PutObject</code>, <code>s3:DeleteObject</code> on the bucket and key</td>
+</tr>
+<tr>
+<td><code>Unsupported argument "use_lockfile"</code></td>
+<td>Terraform older than 1.10</td>
+<td>Upgrade Terraform</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Never <code>-lock=false</code> → that's exactly how state gets corrupted</li>
+<li>Never <code>force-unlock</code> a lock held by a live run</li>
+</ul>
+<h2 id="locking-vs-code-conflicts">Locking vs code conflicts<a class="headerlink" href="#locking-vs-code-conflicts" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Locking stops two runs writing state at the same time → it doesn't merge people's code</li>
+<li>Person A adds VPC 4 and 5 and applies | Person B never pulled A's code and applies → B's plan destroys VPC 4 and 5, because they're in state but not in B's code</li>
+<li>A saved plan made before someone else's apply → <code>Error: Saved plan is stale</code>, must re-plan</li>
+<li>Real fix → Git as the single source of truth, PRs with <code>plan</code> in CI, <code>apply</code> only from <code>main</code> via CI</li>
+</ul>
+<h2 id="after-destroy">After destroy<a class="headerlink" href="#after-destroy" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>terraform destroy</code> deletes the resources, not the state file → the state stays in S3 with <code>"resources": []</code></li>
+<li><code>serial</code> goes up (destroy is a write), <code>lineage</code> stays the same → the next <code>apply</code> continues the same history</li>
+<li><code>terraform state list</code> → prints nothing</li>
+<li>With versioning on → every old copy and the <code>.tflock</code> delete markers stay visible under Show versions</li>
+<li>Delete the state object only when the config is retired for good → <code>aws s3 rm s3://&lt;bucket&gt;/dev/terraform.tfstate</code></li>
+</ul>
+<h2 id="state-commands">State commands<a class="headerlink" href="#state-commands" title="Permanent link">&para;</a></h2>
+<p>None of these touch AWS; they only read or edit the state file. Only <code>apply</code> and <code>destroy</code> change real infra.</p>
+<ul>
+<li><code>terraform state list</code> → every address Terraform manages, one per line</li>
+</ul>
+<div class="highlight"><pre><span></span><code>aws_s3_bucket.first_bucket
+aws_s3_bucket_server_side_encryption_configuration.first_bucket
+aws_s3_bucket_versioning.first_bucket
+aws_vpc.my_vpc
+</code></pre></div>
+<ul>
+<li><code>terraform state show aws_vpc.my_vpc</code> → every stored attribute of one resource (<code>id</code>, <code>arn</code>, <code>cidr_block</code>, <code>tags</code>, <code>owner_id</code>); takes the full address from <code>state list</code></li>
+<li><code>terraform state pull</code> → downloads the state and prints the JSON; the only way to see the remote file from the terminal | <code>terraform state pull | grep serial</code></li>
+<li><code>terraform state mv &lt;old&gt; &lt;new&gt;</code> → rename a resource in state</li>
+<li><code>terraform state rm &lt;address&gt;</code> → Terraform forgets the resource, it keeps running in AWS</li>
+<li><code>terraform state push</code> → overwrite remote state with a local file; disaster recovery only</li>
+<li><code>terraform show</code> → readable view of the whole current state</li>
+<li><code>terraform plan -refresh-only</code> → show drift without changing anything</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Changes state</th>
+<th>Changes AWS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>state list</code> / <code>show</code> / <code>pull</code></td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>state mv</code></td>
+<td>Renames an entry</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>state rm</code></td>
+<td>Removes an entry</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>import</code></td>
+<td>Adds an entry</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>destroy</code></td>
+<td>Removes entries</td>
+<td>Deletes resources</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>terraform show</code> vs <code>terraform state show</code> → <code>show</code> takes a file (state or saved plan), <code>state show</code> takes an address</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Failed to read the given file as a state or plan file</code></td>
+<td>Ran <code>terraform show aws_s3_bucket.first_bucket</code>, so the address was read as a file name</td>
+<td><code>terraform state show aws_s3_bucket.first_bucket</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="state-mv-rename-without-recreating">state mv: rename without recreating<a class="headerlink" href="#state-mv-rename-without-recreating" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Rename the block in code → <code>resource "aws_vpc" "my_vpc"</code> becomes <code>resource "aws_vpc" "main"</code>, and update every reference to <code>aws_vpc.main.id</code></li>
+<li><code>terraform plan</code> → shows destroy <code>my_vpc</code> + create <code>main</code>, because Terraform sees a removed resource and a new one</li>
+<li><code>terraform state mv aws_vpc.my_vpc aws_vpc.main</code></li>
+<li>
+<p><code>terraform plan</code> → <code>No changes</code>, the same VPC is now tracked under the new address</p>
+</li>
+<li>
+<p>Use it whenever a resource is renamed or moved into a module, so refactoring never destroys real infra</p>
+</li>
+</ol>
+<h2 id="state-rm-vs-destroy">state rm vs destroy<a class="headerlink" href="#state-rm-vs-destroy" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Real resource in AWS</th>
+<th>In state</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>terraform destroy</code></td>
+<td>Deleted</td>
+<td>Removed</td>
+</tr>
+<tr>
+<td><code>terraform state rm</code></td>
+<td>Still running</td>
+<td>Removed</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>After <code>state rm</code> → also delete the block from code, otherwise the next <code>plan</code> wants to create it again and you get a duplicate</li>
+<li>Use it to keep a resource while destroying the rest, or to hand it over to another config</li>
+</ul>
+<h2 id="import">Import<a class="headerlink" href="#import" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Import → adopt a resource that already exists in AWS into Terraform's state</li>
+<li>Needed for anything created outside Terraform → console, CLI, scripts, or a resource dropped with <code>state rm</code></li>
+<li><code>terraform import &lt;address&gt; &lt;real-id&gt;</code> → address = where it lives in your code, id = which real object it is</li>
+<li>ID format is on each resource's registry page under Import → VPC = <code>vpc-...</code>, S3 bucket and its settings = the bucket name</li>
+<li>Import only writes state, never code → the resource block must exist first, or it fails with <code>resource address ... does not exist in the configuration</code></li>
+<li>Code must describe the real resource → change the code to match AWS, never the other way round, until <code>plan</code> is clean</li>
+<li><code>state rm</code> and <code>import</code> are an on/off switch → whatever is in state when <code>destroy</code> runs gets destroyed, imported or not</li>
+</ul>
+<h2 id="lab-recovering-from-state-rm">Lab: recovering from state rm<a class="headerlink" href="#lab-recovering-from-state-rm" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>terraform state rm aws_vpc.my_vpc</code> → VPC still running, Terraform forgot it</li>
+<li>Don't <code>apply</code> → it would create a second VPC</li>
+<li>Find the real ID →</li>
+</ol>
+<div class="highlight"><pre><span></span><code>aws<span class="w"> </span>ec2<span class="w"> </span>describe-vpcs<span class="w"> </span>--filters<span class="w"> </span><span class="nv">Name</span><span class="o">=</span>tag:Name,Values<span class="o">=</span>tf-day3-vpc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--query<span class="w"> </span><span class="s1">'Vpcs[].VpcId'</span><span class="w"> </span>--output<span class="w"> </span>text
+</code></pre></div>
+<ol>
+<li><code>terraform import aws_vpc.my_vpc vpc-xxxxxxxx</code> → <code>Import successful!</code></li>
+<li>
+<p><code>terraform state list</code> → all resources back | <code>terraform plan</code> → <code>No changes</code></p>
+</li>
+<li>
+<p>It felt like one command because the resource block was still in code; only the state entry was missing</p>
+</li>
+</ol>
+<h2 id="lab-importing-a-console-made-vpc">Lab: importing a console-made VPC<a class="headerlink" href="#lab-importing-a-console-made-vpc" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Create a VPC in the console (VPC only)</li>
+<li>Read its real settings →</li>
+</ol>
+<div class="highlight"><pre><span></span><code>aws<span class="w"> </span>ec2<span class="w"> </span>describe-vpcs<span class="w"> </span>--vpc-ids<span class="w"> </span>vpc-xxxxxxxx<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--query<span class="w"> </span><span class="s1">'Vpcs[0].{CIDR:CidrBlock,Tags:Tags}'</span>
+</code></pre></div>
+<ol>
+<li>Write a matching block →</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="kr">resource</span><span class="w"> </span><span class="nc">"aws_vpc"</span><span class="w"> </span><span class="nv">"demo_import_vpc"</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="na">cidr_block</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"10.0.0.0/24"</span>
+
+<span class="w">  </span><span class="nb">tags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="na">Name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"import-vpc"</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<ol>
+<li><code>terraform import aws_vpc.demo_import_vpc vpc-xxxxxxxx</code></li>
+<li><code>terraform plan</code> →<ul>
+<li><code>No changes</code> → code matches, done</li>
+<li><code>~ update in-place</code> → small difference (tags), fix the code and re-plan</li>
+<li><code>-/+ must be replaced</code> → wrong <code>cidr_block</code>, don't apply or the console VPC is deleted</li>
+</ul>
+</li>
+<li>From now on Terraform owns it → <code>terraform destroy</code> deletes it too | to keep it, <code>terraform state rm</code> it and delete the block</li>
+<li>Removing the block from code later without <code>state rm</code> → the next plan destroys it</li>
+</ol>
+<h2 id="import-block-and-generated-code">Import block and generated code<a class="headerlink" href="#import-block-and-generated-code" title="Permanent link">&para;</a></h2>
+<p>Terraform 1.5+ can import from code and write the resource block for you.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">import</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="na">to</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">aws_vpc.demo_import_vpc</span>
+<span class="w">  </span><span class="na">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"vpc-xxxxxxxx"</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>terraform<span class="w"> </span>plan<span class="w"> </span>-generate-config-out<span class="o">=</span>generated.tf
+terraform<span class="w"> </span>apply<span class="w">                       </span><span class="c1"># 1 imported, 0 added, 0 changed, 0 destroyed</span>
+</code></pre></div>
+<ul>
+<li><code>generated.tf</code> → a full resource block filled in from AWS; delete <code>null</code> lines and anything not needed</li>
+<li>Shows in <code>plan</code> as <code>1 to import</code> → reviewable in a PR, unlike the CLI command</li>
+<li>Delete the <code>import {}</code> block after the apply, its job is done</li>
+<li>Standard way to bring console-built infra into Terraform without writing every block by hand</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Quick revision</p>
+<ul>
+<li>State = map from code to real resources, holds secrets, never commit it</li>
+<li>Backend → S3 bucket created outside the config, versioning on, <code>encrypt = true</code>, <code>use_lockfile = true</code></li>
+<li>Native lock → <code>.tflock</code> + <code>If-None-Match</code>, conflict = <code>412 PreconditionFailed</code></li>
+<li>Locking protects state, Git and CI protect code</li>
+<li><code>state rm</code> = forget, <code>import</code> = adopt, <code>state mv</code> = rename, none of them touch AWS</li>
+<li>Import needs a matching resource block first, then <code>plan</code> must say <code>No changes</code></li>
+</ul>
+</div>
+<div class="admonition question">
+<p class="admonition-title">Interview points</p>
+<ul>
+<li>What is the Terraform state file? → JSON mapping resources in code to real infrastructure, used to calculate diffs; may contain secrets</li>
+<li>Why use a remote backend? → shared state for teams and CI, locking, encryption, versioned backups, no secrets in Git</li>
+<li>How does S3 native state locking work? → Terraform creates a <code>.tflock</code> object with a conditional write (<code>If-None-Match</code>); if it already exists S3 returns 412 and the second run fails</li>
+<li>Do you still need DynamoDB for locking? → no, from Terraform 1.10 <code>use_lockfile = true</code> locks with S3 alone; DynamoDB locking is deprecated</li>
+<li>What happens if the state file is lost? → Terraform no longer knows what it manages; recover from a bucket version, or <code>terraform import</code> the resources back</li>
+<li>How do you handle a stuck lock? → confirm no run is active, then <code>terraform force-unlock &lt;lock-id&gt;</code></li>
+<li>Can you use variables in the backend block? → no, the backend is configured before variables are evaluated; use <code>-backend-config</code> for dynamic values</li>
+<li>How do you separate environments? → different state keys (<code>dev/</code>, <code>prod/</code>) or separate backends, so a change in one can't affect the other</li>
+<li><code>state rm</code> vs <code>destroy</code>? → <code>state rm</code> forgets the resource but leaves it running; <code>destroy</code> deletes the real resource</li>
+<li>Two engineers apply different code against the same state, what happens? → locking serializes the runs but doesn't merge code; the second plan destroys whatever its code lacks, so use PRs and CI-only applies</li>
+<li>What does <code>terraform import</code> do? → adds an existing real resource to state under an address in your code; it writes state only, so the matching resource block must exist first</li>
+<li>How do you bring console-created infra into Terraform? → write matching resource blocks (or use an <code>import</code> block with <code>plan -generate-config-out</code>), import, then adjust code until <code>plan</code> shows no changes</li>
+<li>You renamed a resource in code and the plan wants to recreate it, what do you do? → <code>terraform state mv &lt;old&gt; &lt;new&gt;</code> so the existing object is tracked under the new address</li>
+<li>You ran <code>state rm</code> by mistake, how do you recover? → don't apply; find the real ID and <code>terraform import</code> it back, then confirm <code>plan</code> shows no changes</li>
+<li>Does <code>destroy</code> delete the state file? → no, it deletes the resources and leaves an empty state with a higher serial</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../aws-auth-and-s3/" class="md-footer__link md-footer__link--prev" aria-label="Previous: AWS Auth &amp; S3">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                AWS Auth & S3
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../variables-locals-outputs/" class="md-footer__link md-footer__link--next" aria-label="Next: Variables, Locals &amp; Outputs">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Variables, Locals & Outputs
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Notes by Aditya Pradhan
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.instant", "navigation.instant.prefetch", "navigation.tracking", "navigation.indexes", "navigation.footer", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../javascripts/home.js"></script>
+      
+    
+  </body>
+</html>
