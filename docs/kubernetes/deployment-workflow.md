@@ -1,7 +1,5 @@
 # From kubectl apply to Running Pod
 
-*Hands-on notes, CKA course Day 7*
-
 ## The short version
 
 * `kubectl apply -f deployment.yaml` sets off a chain → no component does everything, each one does one small job and writes the result back to the API server

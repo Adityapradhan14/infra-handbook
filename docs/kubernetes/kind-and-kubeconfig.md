@@ -1,7 +1,5 @@
 # kind, kubeconfig & Contexts
 
-*Hands-on notes, CKA course Day 8, done on my own Ubuntu machine*
-
 ## What kind is
 
 * `kind` = **K**ubernetes **in** **D**ocker → runs a whole Kubernetes cluster on my laptop

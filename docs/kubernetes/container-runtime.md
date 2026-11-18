@@ -1,7 +1,5 @@
 # Container Runtime Internals
 
-*Hands-on notes, how a Pod actually becomes a process on a node*
-
 ## The chain, top to bottom
 
 ```

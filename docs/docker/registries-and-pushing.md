@@ -1,7 +1,5 @@
 # Registries & Pushing Images
 
-*Hands-on notes, CKA course Day 2*
-
 ## What a registry is
 
 * **Registry** → server that stores and serves images → like an app store for images

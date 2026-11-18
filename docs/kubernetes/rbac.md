@@ -1,7 +1,5 @@
 # RBAC & Request Flow
 
-*Hands-on notes, who is allowed to do what in a cluster*
-
 ## Every request passes three gates
 
 * Every request to the API server (from me, a controller or an app) goes through, in order:

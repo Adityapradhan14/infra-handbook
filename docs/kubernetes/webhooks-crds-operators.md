@@ -1,7 +1,5 @@
 # Webhooks, CRDs & Operators
 
-*Hands-on notes, how Kubernetes is extended without changing Kubernetes itself*
-
 ## Webhooks in general
 
 * Webhook = **"when something happens, call this URL"**

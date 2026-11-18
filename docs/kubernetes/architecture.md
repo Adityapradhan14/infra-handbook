@@ -1,7 +1,5 @@
 # Architecture
 
-*Hands-on notes, CKA course Day 7 plus my own reading*
-
 ## The big picture
 
 * A Kubernetes **cluster** = a group of machines (nodes) working as one

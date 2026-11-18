@@ -1,7 +1,5 @@
 # REST, gRPC & Protobuf
 
-*Hands-on notes, how Kubernetes components talk to each other*
-
 ## Why this matters
 
 * Kubernetes is a group of programs talking over the network → kubectl ↔ API server, API server ↔ etcd, kubelet ↔ containerd

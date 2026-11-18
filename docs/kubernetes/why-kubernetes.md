@@ -1,7 +1,5 @@
 # Why Kubernetes
 
-*Hands-on notes, CKA course Day 6 plus my own reading*
-
 ## The problem with Docker alone
 
 * Docker → great at packaging and running containers **on one machine**

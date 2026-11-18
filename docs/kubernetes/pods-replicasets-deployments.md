@@ -1,7 +1,5 @@
 # Pods, ReplicaSets & Deployments
 
-*Hands-on notes, CKA course Day 7 plus my own reading*
-
 ## Nodes vs Pods
 
 * **Node** → a machine (physical server, VM, or in `kind` a Docker container pretending to be a machine) → gives CPU, RAM, disk, network

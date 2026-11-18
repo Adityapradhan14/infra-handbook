@@ -1,7 +1,5 @@
 # etcd & Raft
 
-*Hands-on notes, the cluster's database and how it stays consistent*
-
 ## What etcd is
 
 * Distributed **key-value store** → stores data as key → value pairs, like a giant dictionary
