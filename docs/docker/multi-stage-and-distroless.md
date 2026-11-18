@@ -16,6 +16,15 @@
 * Cost → no `docker exec -it c bash`, no `RUN apt install` in the final stage, exec-form `CMD` and `ENTRYPOINT` only because shell form needs `/bin/sh`
 * Debugging → `:debug` tag in dev, `kubectl debug` with an ephemeral container in Kubernetes
 
+## Why some apps need a build stage
+
+* **Compiled languages** (Go, Java, C/C++, Rust) → source turned into machine code or bytecode **before** running → needs a build stage with compilers and tools → fast at runtime, the binary is tied to one CPU architecture / OS
+* **Interpreted languages** (Python, JavaScript/Node.js, PHP) → source run directly by an interpreter at runtime → no separate build step usually → slower, but runs anywhere the interpreter exists
+* Build stage → compilers, build tools, dependencies (e.g. `build-essential`, Maven, JDK) → needed to **make** the app
+* Runtime stage → only what is needed to **run** it (e.g. the JRE, Flask)
+* Analogy → making a pizza needs a measuring cup, an oven and raw ingredients, but only the baked pizza is served
+* Separating them → smaller image, faster push/pull, fewer vulnerabilities
+
 ## Multi-stage build
 
 * Several `FROM` lines in one Dockerfile → each starts a new stage

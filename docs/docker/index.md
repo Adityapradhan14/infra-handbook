@@ -34,5 +34,7 @@
     `AS build`, `COPY --from`, distroless images, no shell, 750MB to 292MB
 15. [Image Layers, Tags & Cleanup](image-layers-and-tags.md)
     layers, build cache, image ID vs tag, `docker history`, prune, secrets
+16. [Registries & Pushing Images](registries-and-pushing.md)
+    full image names, Docker Hub, ECR, GCR, `docker tag`, `docker push`, build context
 
 </div>

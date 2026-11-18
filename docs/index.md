@@ -20,7 +20,7 @@ hide:
 <span class="out">├── <span class="dim">aws/</span>          <span class="s">next</span></span>
 <span class="out">├── <a href="terraform/">terraform/</a>    <span class="s">{{ terraform_chapters }} chapters</span></span>
 <span class="out">├── <a href="docker/">docker/</a>       <span class="s">{{ docker_chapters }} chapters</span></span>
-<span class="out">├── <span class="dim">kubernetes/</span>   <span class="s">planned</span></span>
+<span class="out">├── <a href="kubernetes/">kubernetes/</a>   <span class="s">{{ kubernetes_chapters }} chapters</span></span>
 <span class="out">└── <span class="dim">ci-cd/</span>        <span class="s">planned</span></span></pre>
 
 <section class="ih-revise" data-revise aria-live="polite">

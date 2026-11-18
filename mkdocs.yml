@@ -108,3 +108,16 @@ nav:
       - EXPOSE, COPY, WORKDIR & USER: docker/expose-copy-workdir-user.md
       - Multi-Stage Builds & Distroless: docker/multi-stage-and-distroless.md
       - Image Layers, Tags & Cleanup: docker/image-layers-and-tags.md
+      - Registries & Pushing Images: docker/registries-and-pushing.md
+  - Kubernetes:
+      - kubernetes/index.md
+      - Why Kubernetes: kubernetes/why-kubernetes.md
+      - Architecture: kubernetes/architecture.md
+      - Pods, ReplicaSets & Deployments: kubernetes/pods-replicasets-deployments.md
+      - kind, kubeconfig & Contexts: kubernetes/kind-and-kubeconfig.md
+      - From kubectl apply to Running Pod: kubernetes/deployment-workflow.md
+      - Container Runtime Internals: kubernetes/container-runtime.md
+      - etcd & Raft: kubernetes/etcd-and-raft.md
+      - REST, gRPC & Protobuf: kubernetes/rest-grpc-protobuf.md
+      - RBAC & Request Flow: kubernetes/rbac.md
+      - Webhooks, CRDs & Operators: kubernetes/webhooks-crds-operators.md
