@@ -113,6 +113,7 @@ nav:
       - kubernetes/index.md
       - Why Kubernetes: kubernetes/why-kubernetes.md
       - Architecture: kubernetes/architecture.md
+      - YAML, Manifests & Objects: kubernetes/yaml-and-manifests.md
       - Pods, ReplicaSets & Deployments: kubernetes/pods-replicasets-deployments.md
       - kind, kubeconfig & Contexts: kubernetes/kind-and-kubeconfig.md
       - From kubectl apply to Running Pod: kubernetes/deployment-workflow.md
