@@ -121,3 +121,9 @@ nav:
       - REST, gRPC & Protobuf: kubernetes/rest-grpc-protobuf.md
       - RBAC & Request Flow: kubernetes/rbac.md
       - Webhooks, CRDs & Operators: kubernetes/webhooks-crds-operators.md
+  - Go:
+      - go/index.md
+      - Installation & GOROOT: go/installation-and-goroot.md
+      - GOPATH, Caches & go env: go/gopath-and-caches.md
+      - Modules & Packages: go/modules-and-packages.md
+      - Go Files, Running & Testing: go/files-running-testing.md
