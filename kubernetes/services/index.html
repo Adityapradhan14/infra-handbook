@@ -1,0 +1,5782 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Field notes, runbooks and labs on Linux, cloud and infrastructure">
+      
+      
+        <meta name="author" content="Aditya Pradhan">
+      
+      
+        <link rel="canonical" href="https://adityapradhan14.github.io/infra-handbook/kubernetes/services/">
+      
+      
+        <link rel="prev" href="../three-tier-and-microservices/">
+      
+      
+        <link rel="next" href="../debugging-services/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Services - Infra Handbook</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#services" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Infra Handbook" class="md-header__button md-logo" aria-label="Infra Handbook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Infra Handbook
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Services
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Adityapradhan14/infra-handbook" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    infra-handbook
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../linux/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Linux
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../bash/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Bash
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../terraform/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Terraform
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../docker/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Docker
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Kubernetes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../go/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Go
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Infra Handbook" class="md-nav__button md-logo" aria-label="Infra Handbook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Infra Handbook
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Adityapradhan14/infra-handbook" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    infra-handbook
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../linux/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linux
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Linux
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/shell-basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Shell
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/navigation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/exploring-the-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploring the System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/files-and-directories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & Directories
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/working-with-commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working with Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/redirection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Redirection & Pipes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/shell-expansion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Expansion & Quoting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/keyboard-shortcuts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keyboard Shortcuts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/permissions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/processes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Processes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    systemd & Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/vim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vi / vim
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/package-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/networking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Networking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/finding-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Finding Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux/archiving-and-backup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archiving & Backup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../bash/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bash
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bash
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bash/bash-basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bash Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bash/conditionals-and-loops/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conditionals, Loops & Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bash/script-safety/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Script Safety
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../terraform/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terraform
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Terraform
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/iac-and-terraform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IaC & Terraform
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/hcl-syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HCL Syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Providers & Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/aws-auth-and-s3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Auth & S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/state-and-remote-backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State & Remote Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/variables-locals-outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Variables, Locals & Outputs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/type-constraints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Type Constraints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/meta-arguments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meta-Arguments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terraform/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../docker/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Docker
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install & Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/containers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/images-and-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Images & Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/networking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Networking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/namespaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/logs-and-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs & Files on Disk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/volumes-and-bind-mounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Volumes & Bind Mounts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/docker-socket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Docker Socket
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/dockerfile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dockerfile
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/entrypoint-and-cmd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ENTRYPOINT & CMD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/expose-copy-workdir-user/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXPOSE, COPY, WORKDIR & USER
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/multi-stage-and-distroless/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Stage Builds & Distroless
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/image-layers-and-tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Layers, Tags & Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/registries-and-pushing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registries & Pushing Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kubernetes
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Kubernetes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../why-kubernetes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why Kubernetes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../yaml-and-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML, Manifests & Objects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pods-replicasets-deployments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pods, ReplicaSets & Deployments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kind-and-kubeconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    kind, kubeconfig & Contexts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../three-tier-and-microservices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Three-Tier & Microservices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Services
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-problem-services-solve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem Services solve
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-service-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a Service is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pod-networking-vs-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pod networking vs Services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-a-service-finds-its-pods-labels-and-selectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How a Service finds its Pods (labels and selectors)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How a Service finds its Pods (labels and selectors)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-label-that-connects-everything" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The label that connects everything
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-the-list-lives-endpointslices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the list lives → EndpointSlices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ports-from-zero" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ports, from zero
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ports, from zero">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-a-port-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a port is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-two-ports-of-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The two ports of a Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-two-numbers-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why two numbers at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wrong-targetport-classic-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wrong targetPort = classic bug
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-find-which-port-an-app-uses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to find which port an app uses
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-manifest-anatomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service manifest anatomy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#office-building-analogy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Office-building analogy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clusterip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ClusterIP
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ClusterIP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-simple-story" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The simple story
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-when-the-service-is-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens when the Service is created
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-on-curl-backend-svc9090-packet-by-packet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens on curl backend-svc:9090 (packet by packet)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-a-backend-pod-dies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a backend Pod dies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-ip-ranges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two IP ranges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seeing-the-iptables-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Seeing the iptables rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-kubectl-describe-svc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading kubectl describe svc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dns-names-of-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS names of a Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-frontend-backend-with-clusterip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: frontend + backend with ClusterIP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nodeport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NodePort
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="NodePort">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-nodeport-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What NodePort does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#now-three-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Now three ports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kubectl-describe-of-a-nodeport-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kubectl describe of a NodePort Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-on-a-request-from-outside" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens on a request from outside
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-traffic-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Traffic Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-node-should-the-user-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which node should the user use?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-when-a-node-goes-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens when a node goes down
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ways-to-put-one-stable-address-in-front" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ways to put one stable address in front
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-nodeport-is-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When NodePort is used
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate-a-node-failure-on-kind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulate a node failure on kind
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reaching-nodeport-on-kind-extraportmappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaching NodePort on kind (extraPortMappings)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reaching NodePort on kind (extraPortMappings)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-fix-a-pipe-from-my-laptop-into-a-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The fix → a pipe from my laptop into a node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-only-be-set-at-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can only be set at creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-full-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The full chain
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-expose-the-frontend-hide-the-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: expose the frontend, hide the backend
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lab: expose the frontend, hide the backend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading-kubectl-get-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading kubectl get all
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadbalancer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LoadBalancer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LoadBalancer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-left-by-nodeport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem left by NodePort
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-when-its-applied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens when it's applied
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-packet-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The packet path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-aws-eks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On AWS (EKS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-kind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On kind
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-it-used-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Is it used in production?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#externalname" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExternalName
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ExternalName">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-does_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-actually-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What actually happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#watch-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Watch out
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-uses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real uses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#try-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Try it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headless-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headless Services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-type-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which type when
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-flow-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request flow summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../debugging-services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugging Services & DNS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From kubectl apply to Running Pod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../container-runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Container Runtime Internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../etcd-and-raft/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    etcd & Raft
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-grpc-protobuf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST, gRPC & Protobuf
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rbac/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBAC & Request Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../webhooks-crds-operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Webhooks, CRDs & Operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../go/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Go
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Go
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../go/installation-and-goroot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation & GOROOT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../go/gopath-and-caches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GOPATH, Caches & go env
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../go/modules-and-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules & Packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../go/files-running-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Go Files, Running & Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-problem-services-solve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem Services solve
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-service-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a Service is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pod-networking-vs-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pod networking vs Services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-a-service-finds-its-pods-labels-and-selectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How a Service finds its Pods (labels and selectors)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How a Service finds its Pods (labels and selectors)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-label-that-connects-everything" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The label that connects everything
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-the-list-lives-endpointslices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the list lives → EndpointSlices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ports-from-zero" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ports, from zero
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ports, from zero">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-a-port-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a port is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-two-ports-of-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The two ports of a Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-two-numbers-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why two numbers at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wrong-targetport-classic-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wrong targetPort = classic bug
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-find-which-port-an-app-uses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to find which port an app uses
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-manifest-anatomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service manifest anatomy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#office-building-analogy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Office-building analogy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clusterip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ClusterIP
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ClusterIP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-simple-story" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The simple story
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-when-the-service-is-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens when the Service is created
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-on-curl-backend-svc9090-packet-by-packet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens on curl backend-svc:9090 (packet by packet)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-a-backend-pod-dies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a backend Pod dies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-ip-ranges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two IP ranges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seeing-the-iptables-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Seeing the iptables rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-kubectl-describe-svc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading kubectl describe svc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dns-names-of-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS names of a Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-frontend-backend-with-clusterip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: frontend + backend with ClusterIP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nodeport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NodePort
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="NodePort">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-nodeport-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What NodePort does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#now-three-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Now three ports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kubectl-describe-of-a-nodeport-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kubectl describe of a NodePort Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-on-a-request-from-outside" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens on a request from outside
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-traffic-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Traffic Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-node-should-the-user-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which node should the user use?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-when-a-node-goes-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens when a node goes down
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ways-to-put-one-stable-address-in-front" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ways to put one stable address in front
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-nodeport-is-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When NodePort is used
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate-a-node-failure-on-kind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulate a node failure on kind
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reaching-nodeport-on-kind-extraportmappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaching NodePort on kind (extraPortMappings)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reaching NodePort on kind (extraPortMappings)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-fix-a-pipe-from-my-laptop-into-a-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The fix → a pipe from my laptop into a node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-only-be-set-at-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can only be set at creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-full-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The full chain
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-expose-the-frontend-hide-the-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab: expose the frontend, hide the backend
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lab: expose the frontend, hide the backend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading-kubectl-get-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading kubectl get all
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadbalancer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LoadBalancer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LoadBalancer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-left-by-nodeport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem left by NodePort
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-when-its-applied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens when it's applied
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-packet-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The packet path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-aws-eks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On AWS (EKS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-kind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On kind
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-it-used-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Is it used in production?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#externalname" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExternalName
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ExternalName">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-does_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-actually-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What actually happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#watch-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Watch out
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-uses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real uses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#try-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Try it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headless-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headless Services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-type-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which type when
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-flow-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request flow summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="services">Services<a class="headerlink" href="#services" title="Permanent link">&para;</a></h1>
+<h2 id="the-problem-services-solve">The problem Services solve<a class="headerlink" href="#the-problem-services-solve" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Pods are <strong>temporary</strong> → crash, rescheduled, replaced in a rollout → every new Pod gets a <strong>new IP</strong></li>
+<li>Frontend talks to backend by Pod IP → breaks the next time a backend Pod is replaced</li>
+<li>3 backend replicas → which one should the frontend call? → it would need its own load-balancing logic</li>
+<li>Some Pods must be reachable <strong>inside</strong> the cluster only (backend), some from <strong>outside</strong> (frontend)</li>
+</ul>
+<div class="highlight"><pre><span></span><code>Without a Service:  User ─▶ Frontend Pod (IP keeps changing) ─▶ Backend Pod (IP keeps changing)   ✗
+
+With Services:      User ─▶ frontend-svc ─▶ Frontend Pod ─▶ backend-svc ─▶ Backend Pod           ✓
+</code></pre></div>
+<h2 id="what-a-service-is">What a Service is<a class="headerlink" href="#what-a-service-is" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A <strong>stable front door</strong> in front of a group of Pods</li>
+<li>Gives →<ul>
+<li>a <strong>fixed virtual IP</strong> (ClusterIP) that never changes while the Service exists</li>
+<li>a <strong>DNS name</strong> → <code>backend-svc</code> (short) or <code>backend-svc.default.svc.cluster.local</code> (full)</li>
+<li><strong>load balancing</strong> across all matching <strong>Ready</strong> Pods</li>
+<li><strong>automatic tracking</strong> → Pods come and go, the Service's list updates by itself</li>
+</ul>
+</li>
+<li>Analogy → customer-care number → which employee picks up keeps changing, the number stays the same<ul>
+<li>number = Service | employees = Pods | caller = frontend</li>
+</ul>
+</li>
+</ul>
+<h2 id="pod-networking-vs-services">Pod networking vs Services<a class="headerlink" href="#pod-networking-vs-services" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Common confusion → "Services let Pods on different nodes talk" → <strong>not quite</strong></li>
+<li>Pods can <strong>already</strong> reach each other by Pod IP, same node or different node → that is the <strong>CNI plugin's</strong> job (Calico, Flannel, Cilium, kindnet in kind) → every Pod gets a unique IP, all nodes joined into one flat network</li>
+<li>The <strong>Service</strong> adds what raw Pod IPs can't give → a stable name/IP + load balancing + auto-updating list of Pods</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>CNI (Pod network)</th>
+<th>Service</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Analogy</td>
+<td>The roads</td>
+<td>The address board / reception</td>
+</tr>
+<tr>
+<td>Gives</td>
+<td>Every Pod a unique IP, cross-node delivery</td>
+<td>Stable IP + DNS name, load balancing</td>
+</tr>
+<tr>
+<td>Without it</td>
+<td>Pods can't reach each other at all</td>
+<td>Pods can reach each other, but must track changing IPs themselves</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>A Service works the same whether its Pods are on one node or spread across many</li>
+</ul>
+<h2 id="how-a-service-finds-its-pods-labels-and-selectors">How a Service finds its Pods (labels and selectors)<a class="headerlink" href="#how-a-service-finds-its-pods-labels-and-selectors" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A Service never lists Pod names or IPs → it has a <strong>selector</strong> → "send traffic to every Pod with these labels"</li>
+<li>Kubernetes keeps checking → which Pods have this label <strong>right now</strong>? → those become the Service's <strong>endpoints</strong></li>
+</ul>
+<h3 id="the-label-that-connects-everything">The label that connects everything<a class="headerlink" href="#the-label-that-connects-everything" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Deployment</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span><span class="w">       </span><span class="c1"># (2) Deployment finds ITS Pods by this label</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span><span class="w">     </span><span class="c1"># (1) every Pod gets this label (sticker)</span>
+<span class="nn">---</span>
+<span class="c1"># Service</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span><span class="w">         </span><span class="c1"># (3) Service finds Pods to send traffic to by this label</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Where</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>template.metadata.labels</code></td>
+<td><strong>Puts</strong> the label on each new Pod</td>
+</tr>
+<tr>
+<td>Deployment <code>selector.matchLabels</code></td>
+<td>Deployment <strong>counts</strong> its own Pods by the label</td>
+</tr>
+<tr>
+<td>Service <code>selector</code></td>
+<td>Service <strong>finds</strong> Pods to route to by the label</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Deployment and Service <strong>don't know about each other</strong> → they're linked only through the Pods' labels</li>
+<li>Change the label in one place and not the others → things break silently</li>
+</ul>
+<h3 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Automatic and live</strong> →<ul>
+<li>Pod dies → removed from the Service</li>
+<li>New Pod comes up → added</li>
+<li>Scale 3 → 5 → all 5 added, Service YAML untouched</li>
+</ul>
+</li>
+<li><strong>Only Ready Pods</strong> → a Pod still starting or failing its readiness probe is <strong>not</strong> added → no traffic until Ready</li>
+<li><strong>Same namespace only</strong> → a Pod with <code>app: backend</code> in another namespace is ignored</li>
+<li><strong>Any Pod with the label gets traffic</strong> → even a random test Pod I accidentally label <code>app: backend</code> → keep labels specific</li>
+<li><strong>Doesn't care who created the Pod</strong> → delete the Deployment, create matching Pods another way → Service still routes to them</li>
+</ul>
+<h3 id="where-the-list-lives-endpointslices">Where the list lives → EndpointSlices<a class="headerlink" href="#where-the-list-lives-endpointslices" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The <strong>EndpointSlice controller</strong> (inside kube-controller-manager) writes the current Ready <code>PodIP:targetPort</code> list into <strong>EndpointSlice</strong> objects</li>
+<li>Old API = <code>Endpoints</code> object → still shown in <code>kubectl describe svc</code> as the <code>Endpoints:</code> line</li>
+</ul>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>describe<span class="w"> </span>svc<span class="w"> </span>backend-svc<span class="w">                                        </span><span class="c1"># Endpoints: line</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>endpointslices<span class="w"> </span>-l<span class="w"> </span>kubernetes.io/service-name<span class="o">=</span>backend-svc
+</code></pre></div>
+<ul>
+<li>Watch it update live →</li>
+</ul>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>endpointslices<span class="w"> </span>-l<span class="w"> </span>kubernetes.io/service-name<span class="o">=</span>backend-svc<span class="w"> </span>-w<span class="w">   </span><span class="c1"># terminal 1</span>
+kubectl<span class="w"> </span>scale<span class="w"> </span>deployment<span class="w"> </span>backend-deploy<span class="w"> </span>--replicas<span class="o">=</span><span class="m">5</span><span class="w">                      </span><span class="c1"># terminal 2 → 2 new IPs appear</span>
+</code></pre></div>
+<ul>
+<li><strong><code>Endpoints</code> empty</strong> = selector matches no Pods OR matching Pods aren't Ready → the most common Service bug</li>
+</ul>
+<h2 id="ports-from-zero">Ports, from zero<a class="headerlink" href="#ports-from-zero" title="Permanent link">&para;</a></h2>
+<h3 id="what-a-port-is">What a port is<a class="headerlink" href="#what-a-port-is" title="Permanent link">&para;</a></h3>
+<ul>
+<li>A machine has <strong>one IP</strong> but runs many apps → a message arrives → which app is it for? → the <strong>port</strong> decides</li>
+<li>Each app listens on its own number → web server 80, MySQL 3306, SSH 22</li>
+<li>Full address = <strong>IP : port</strong> → which machine : which app on it</li>
+<li>Analogy → IP = apartment building | port = flat number | courier needs both</li>
+</ul>
+<h3 id="the-two-ports-of-a-service">The two ports of a Service<a class="headerlink" href="#the-two-ports-of-a-service" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>frontend  ─▶  backend-svc : 9090   ─▶   pod : 5678
+              (Service IP) port         (Pod IP) targetPort
+</code></pre></div>
+<ul>
+<li><strong><code>port</code></strong> → the port the <strong>Service</strong> listens on → what <strong>callers</strong> use → <code>backend-svc:9090</code> → <strong>I choose</strong> it, any number</li>
+<li><strong><code>targetPort</code></strong> → the port the <strong>app inside the Pod</strong> listens on → where traffic finally lands → <strong>the app decides</strong> it, I just have to tell the Service what it is</li>
+<li>The node swaps <strong>both</strong> parts → Service IP → Pod IP <strong>and</strong> 9090 → 5678</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Hotel</th>
+<th>Kubernetes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reception</td>
+<td>Service</td>
+</tr>
+<tr>
+<td>Counter 9090 (guests go here)</td>
+<td><code>port</code></td>
+</tr>
+<tr>
+<td>Room 5678 (the person is actually here)</td>
+<td><code>targetPort</code></td>
+</tr>
+<tr>
+<td>Person in the room</td>
+<td>The app (http-echo)</td>
+</tr>
+<tr>
+<td>Guest</td>
+<td>The caller (frontend)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Memory trick → <strong>target = the app</strong> → shooting an arrow: fire from <code>port</code>, it lands on the <code>targetPort</code></li>
+<li>Who uses what →<ul>
+<li><strong>Service</strong> → one IP (<code>10.96.74.12</code>), accepts traffic on <strong>9090</strong></li>
+<li><strong>Caller</strong> → sends to <code>backend-svc:9090</code> → any other port → nothing answers</li>
+<li><strong>Pods</strong> → each has its <strong>own different IP</strong> (<code>10.244.2.14</code>, <code>10.244.1.14</code>, <code>10.244.2.15</code>) but <strong>all listen on the same 5678</strong> (same app)</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code>caller ─▶ 10.96.74.12:9090 ─┬─▶ 10.244.2.14:5678
+          (Service)         ├─▶ 10.244.1.14:5678
+                            └─▶ 10.244.2.15:5678
+                               (different IPs, same port)
+</code></pre></div>
+<h3 id="why-two-numbers-at-all">Why two numbers at all<a class="headerlink" href="#why-two-numbers-at-all" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Caller doesn't need to know the app's real port</li>
+<li>App moves from 5678 → 8000 → change only <code>targetPort</code> → callers still use <code>:9090</code> → nothing else breaks</li>
+<li>In practice they are often the same → <code>port: 80, targetPort: 80</code> → keeps it simple</li>
+</ul>
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>YAML</th>
+<th>Caller uses</th>
+<th>App listens on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>port: 9090, targetPort: 5678</code></td>
+<td><code>backend-svc:9090</code></td>
+<td>5678</td>
+</tr>
+<tr>
+<td><code>port: 80, targetPort: 3000</code></td>
+<td><code>backend-svc:80</code></td>
+<td>3000</td>
+</tr>
+<tr>
+<td><code>port: 80, targetPort: 8080</code></td>
+<td><code>backend-svc:80</code></td>
+<td>8080</td>
+</tr>
+</tbody>
+</table>
+<h3 id="wrong-targetport-classic-bug">Wrong targetPort = classic bug<a class="headerlink" href="#wrong-targetport-classic-bug" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>targetPort</code> doesn't match the app's real port (app on 80, I wrote 5678) →<ul>
+<li>Service is created fine ✓ | Pods are <code>1/1 Running</code> ✓ | <code>Endpoints</code> shows IPs ✓</li>
+<li>but every request fails → <strong>connection refused</strong> / browser says <strong>empty response</strong> → the node forwards to a port where <strong>nothing is listening</strong></li>
+</ul>
+</li>
+<li>Fix → set <code>targetPort</code> to the port the app really uses</li>
+</ul>
+<h3 id="how-to-find-which-port-an-app-uses">How to find which port an app uses<a class="headerlink" href="#how-to-find-which-port-an-app-uses" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>nginx listens on 80 by default</strong> → set in its config (<code>listen 80;</code> in <code>/etc/nginx/conf.d/default.conf</code>)</li>
+<li><code>hashicorp/http-echo</code> listens on <strong>5678</strong> by default</li>
+<li>Ways to check any image →<ol>
+<li>The image's page on Docker Hub → docs mention the port</li>
+<li><code>EXPOSE</code> in the image → only a <strong>label</strong> from the image author, usually right, not guaranteed</li>
+<li>Look inside the running container → what is <strong>actually</strong> listening (most reliable)</li>
+</ol>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>inspect<span class="w"> </span>nginx<span class="w"> </span>--format<span class="w"> </span><span class="s1">'{{.Config.ExposedPorts}}'</span><span class="w">                          </span><span class="c1"># map[80/tcp:{}]</span>
+kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>deploy/frontend-deploy<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/etc/nginx/conf.d/default.conf<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>listen
+</code></pre></div>
+<ul>
+<li><code>containerPort</code> in a Deployment (<code>ports: - containerPort: 80</code>) → <strong>documentation only</strong> → does not open or block anything → Service's <code>targetPort</code> must still match the real port</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>App</th>
+<th>Default port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nginx / Apache (HTTP)</td>
+<td>80</td>
+</tr>
+<tr>
+<td>HTTPS</td>
+<td>443</td>
+</tr>
+<tr>
+<td>hashicorp/http-echo</td>
+<td>5678</td>
+</tr>
+<tr>
+<td>Node.js apps</td>
+<td>often 3000</td>
+</tr>
+<tr>
+<td>Flask</td>
+<td>5000</td>
+</tr>
+<tr>
+<td>Spring Boot / Tomcat</td>
+<td>8080</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>3306</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>5432</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>6379</td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>27017</td>
+</tr>
+<tr>
+<td>DNS</td>
+<td>53</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Defaults only → any app can be reconfigured → when something breaks, check the real config</li>
+</ul>
+<h2 id="service-manifest-anatomy">Service manifest anatomy<a class="headerlink" href="#service-manifest-anatomy" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend-svc</span><span class="w">          </span><span class="c1"># also becomes its DNS name</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterIP</span><span class="w">            </span><span class="c1"># what kind of Service</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w">                     </span><span class="c1"># which door</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span><span class="w">          </span><span class="c1"># default TCP, can be skipped</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9090</span><span class="w">             </span><span class="c1"># Service's port (callers use this)</span>
+<span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5678</span><span class="w">       </span><span class="c1"># app's port inside the Pod</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w">                  </span><span class="c1"># which Pods</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span>
+</code></pre></div>
+<ul>
+<li>Three parts under <code>spec</code> → <strong>type, ports, selector</strong><ul>
+<li><strong>type</strong> → what kind? → ClusterIP / NodePort / LoadBalancer / ExternalName</li>
+<li><strong>ports</strong> → which door? → <code>port</code> (counter) + <code>targetPort</code> (room) (+ <code>nodePort</code> for NodePort)</li>
+<li><strong>selector</strong> → which Pods? → label to match</li>
+</ul>
+</li>
+<li>Memory trick → <strong>T-P-S</strong> → "Tea, Pakoda, Samosa" → what kind, which door, which pods</li>
+<li><code>type</code> is optional → skipped = <code>ClusterIP</code> | <code>ports</code> and <code>selector</code> are almost always written</li>
+<li><code>port</code> can have a <code>name</code> → shown as <code>&lt;unset&gt;</code> in <code>describe</code> when not set → optional, nothing wrong</li>
+<li>Imperative shortcut →</li>
+</ul>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>expose<span class="w"> </span>deployment<span class="w"> </span>backend-deploy<span class="w"> </span>--name<span class="o">=</span>backend-svc<span class="w"> </span>--port<span class="o">=</span><span class="m">9090</span><span class="w"> </span>--target-port<span class="o">=</span><span class="m">5678</span>
+kubectl<span class="w"> </span>expose<span class="w"> </span>deployment<span class="w"> </span>backend-deploy<span class="w"> </span>--port<span class="o">=</span><span class="m">9090</span><span class="w"> </span>--target-port<span class="o">=</span><span class="m">5678</span><span class="w"> </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w">   </span><span class="c1"># generate YAML</span>
+</code></pre></div>
+<h2 id="service-types">Service types<a class="headerlink" href="#service-types" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Reachable from</th>
+<th>What it adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ClusterIP</strong> (default)</td>
+<td>Inside the cluster only</td>
+<td>Stable virtual IP + DNS name + load balancing</td>
+</tr>
+<tr>
+<td><strong>NodePort</strong></td>
+<td>Outside, at <code>&lt;anyNodeIP&gt;:&lt;nodePort&gt;</code></td>
+<td>ClusterIP + same port (30000–32767) opened on every node</td>
+</tr>
+<tr>
+<td><strong>LoadBalancer</strong></td>
+<td>Outside, at one external IP/hostname</td>
+<td>NodePort + a cloud load balancer in front</td>
+</tr>
+<tr>
+<td><strong>ExternalName</strong></td>
+<td>Inside the cluster</td>
+<td>Just a DNS alias (CNAME) to an outside name, no IP, no Pods</td>
+</tr>
+<tr>
+<td>Headless (<code>clusterIP: None</code>)</td>
+<td>Inside the cluster</td>
+<td>No virtual IP, DNS returns each Pod's IP directly</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>They <strong>stack</strong> →</li>
+</ul>
+<div class="highlight"><pre><span></span><code>LoadBalancer  =  NodePort + cloud load balancer
+NodePort      =  ClusterIP + port on every node
+ClusterIP     =  internal fixed address
+</code></pre></div>
+<h3 id="office-building-analogy">Office-building analogy<a class="headerlink" href="#office-building-analogy" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Building</th>
+<th>Kubernetes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Office building complex</td>
+<td>Cluster</td>
+</tr>
+<tr>
+<td>Individual buildings</td>
+<td>Nodes</td>
+</tr>
+<tr>
+<td>Departments (HR, Finance)</td>
+<td>Pods</td>
+</tr>
+<tr>
+<td>Internal phone extensions</td>
+<td><strong>ClusterIP</strong> → only works inside the complex</td>
+</tr>
+<tr>
+<td>Front-desk phone number of each building</td>
+<td><strong>NodePort</strong> → outsiders call a building's front desk</td>
+</tr>
+<tr>
+<td>Call centre with one number</td>
+<td><strong>LoadBalancer</strong> → routes to any working front desk</td>
+</tr>
+<tr>
+<td>IT support speed-dial 111</td>
+<td><strong>ExternalName</strong> → shortcut to an outside party</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clusterip">ClusterIP<a class="headerlink" href="#clusterip" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Default type → reachable <strong>only inside</strong> the cluster → for Pod-to-Pod traffic (frontend → backend, backend → cache)</li>
+<li>Gets a virtual IP from the <strong>Service CIDR</strong> (<code>10.96.0.0/12</code> in kind) → not on any machine, Pod or network card</li>
+</ul>
+<h3 id="the-simple-story">The simple story<a class="headerlink" href="#the-simple-story" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Frontend wants <code>backend-svc</code> → computers need an IP, not a name → asks the cluster's <strong>phonebook</strong> (CoreDNS) → answer <code>10.96.74.12</code></li>
+<li>Frontend sends the request to <code>10.96.74.12</code></li>
+<li><code>10.96.74.12</code> is <strong>fake</strong> → nobody owns it → it exists only as a rule on every node</li>
+<li>As the packet leaves, the node checks its rule → "anything to <code>10.96.74.12</code>? send it to one of the 3 backend Pods" → picks one, changes the address on the packet</li>
+<li>
+<p>That Pod replies → on the way back the node changes the reply's address back to <code>10.96.74.12</code> → frontend thinks the fake address answered</p>
+</li>
+<li>
+<p>Analogy → letter to "PO Box 9090" → post office rule: letters to that box go to any free employee → reply comes back stamped "PO Box 9090"</p>
+</li>
+<li>Two things to remember →<ul>
+<li>the <strong>Service IP is fake</strong> → just a rule on every node</li>
+<li>the <strong>node swaps</strong> the fake address for a real Pod's address, and swaps it back on the reply</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-happens-when-the-service-is-created">What happens when the Service is created<a class="headerlink" href="#what-happens-when-the-service-is-created" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>kubectl → API server</strong> → YAML validated, stored in <strong>etcd</strong> → at this point only a database record, nothing running</li>
+<li><strong>IP allocated</strong> → API server picks a free IP from the Service CIDR → <code>10.96.74.12</code> → virtual, not attached anywhere</li>
+<li><strong>Pods found</strong> → EndpointSlice controller reads <code>selector: app=backend</code> → finds all <strong>Ready</strong> Pods with that label → adds <code>targetPort</code> →
+   <code>10.244.2.14:5678, 10.244.1.14:5678, 10.244.2.15:5678</code> → the <code>Endpoints:</code> line</li>
+<li><strong>DNS record</strong> → <strong>CoreDNS</strong> (Pods in <code>kube-system</code>) watches the API server → adds
+   <code>backend-svc.default.svc.cluster.local → 10.96.74.12</code></li>
+<li>
+<p><strong>Rules on every node</strong> → <strong>kube-proxy</strong> (one per node, a DaemonSet) watches Services and EndpointSlices → writes <strong>iptables</strong> NAT rules on its node:
+   "packet to <code>10.96.74.12:9090</code> → change destination to one of the 3 endpoints, pick randomly"</p>
+</li>
+<li>
+<p>Setup done → no process "runs" the Service → it's a DNS record + iptables rules on every node</p>
+</li>
+</ol>
+<h3 id="what-happens-on-curl-backend-svc9090-packet-by-packet">What happens on <code>curl backend-svc:9090</code> (packet by packet)<a class="headerlink" href="#what-happens-on-curl-backend-svc9090-packet-by-packet" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>App needs an IP</strong> → can't connect to a name</li>
+<li><strong>Pod knows where DNS is</strong> → kubelet wrote <code>/etc/resolv.conf</code> into the Pod:
+    <div class="highlight"><pre><span></span><code>search default.svc.cluster.local svc.cluster.local cluster.local
+nameserver 10.96.0.10
+options ndots:5
+</code></pre></div><ul>
+<li><code>nameserver 10.96.0.10</code> → send DNS questions here → that is the <strong>kube-dns</strong> Service (in front of the CoreDNS Pods)</li>
+<li><code>search ...</code> → short name <code>backend-svc</code> → try <code>backend-svc.default.svc.cluster.local</code> first</li>
+<li><code>ndots:5</code> → names with fewer than 5 dots get the search suffixes tried first</li>
+</ul>
+</li>
+<li><strong>DNS question and answer</strong> → "what is <code>backend-svc.default.svc.cluster.local</code>?" → CoreDNS → <code>10.96.74.12</code></li>
+<li><strong>App sends the packet</strong> → from <code>10.244.1.5:&lt;random port&gt;</code> (frontend Pod) → to <code>10.96.74.12:9090</code></li>
+<li><strong>Packet leaves the Pod</strong> → through the Pod's <strong>veth pair</strong> (virtual cable: one end in the Pod, one end on the node) → arrives in the <strong>node's kernel</strong></li>
+<li><strong>iptables catches it</strong> → rule matches <code>10.96.74.12:9090</code> → picks an endpoint at random, e.g. <code>10.244.2.15:5678</code> → <strong>DNAT</strong> (destination NAT):<ul>
+<li>before → to <code>10.96.74.12:9090</code></li>
+<li>after → to <code>10.244.2.15:5678</code></li>
+<li>kernel records the rewrite in <strong>conntrack</strong> (connection tracking table) so it can undo it for the reply</li>
+</ul>
+</li>
+<li><strong>Routing</strong> → is <code>10.244.2.15</code> on this node?<ul>
+<li>yes → delivered straight through that Pod's veth</li>
+<li>no → the <strong>CNI</strong> carries it to the right node, which delivers it</li>
+</ul>
+</li>
+<li><strong>Backend Pod receives it</strong> on <code>:5678</code> → http-echo accepts → doesn't know a Service was involved → sees the request coming from <code>10.244.1.5</code></li>
+<li><strong>Reply</strong> → from <code>10.244.2.15:5678</code> to <code>10.244.1.5</code> → passes back through the frontend's node</li>
+<li><strong>conntrack undoes the rewrite</strong> → source changed back:<ul>
+<li>before → from <code>10.244.2.15:5678</code></li>
+<li>after → from <code>10.96.74.12:9090</code></li>
+<li>why → the app talked to <code>10.96.74.12:9090</code>; a reply from any other address would be rejected ("I never talked to you")</li>
+</ul>
+</li>
+<li>
+<p><strong>Frontend gets the answer</strong> → from <code>10.96.74.12:9090</code> → never knows which Pod replied</p>
+</li>
+<li>
+<p>The "Service" is really just a <strong>destination rewrite on the node</strong> → no load-balancer machine, no proxy process in the data path</p>
+</li>
+</ol>
+<h3 id="when-a-backend-pod-dies">When a backend Pod dies<a class="headerlink" href="#when-a-backend-pod-dies" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Pod <code>10.244.2.15</code> crashes → EndpointSlice controller removes it → 2 endpoints</li>
+<li>kube-proxy on every node updates its rules → only the 2 remaining Pods</li>
+<li>Deployment's ReplicaSet creates a replacement → <strong>new IP</strong>, e.g. <code>10.244.1.20</code> → once Ready → added to endpoints → rules updated again</li>
+<li>Frontend keeps calling <code>backend-svc:9090</code> → notices nothing → that's the whole point of a Service</li>
+</ul>
+<h3 id="two-ip-ranges">Two IP ranges<a class="headerlink" href="#two-ip-ranges" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Range (kind defaults)</th>
+<th>What</th>
+<th>Stable?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>10.96.x.x</code></td>
+<td>Service IPs (ClusterIPs)</td>
+<td>Yes, for the Service's lifetime</td>
+</tr>
+<tr>
+<td><code>10.244.x.x</code></td>
+<td>Pod IPs</td>
+<td>No, change on every restart</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Each node usually gets its own Pod range → <code>10.244.1.x</code> on one node, <code>10.244.2.x</code> on another → endpoints from both ranges = Pods spread over 2 nodes, Service treats them as one group</li>
+</ul>
+<h3 id="seeing-the-iptables-rules">Seeing the iptables rules<a class="headerlink" href="#seeing-the-iptables-rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li>kind nodes are Docker containers → look inside one</li>
+</ul>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;node-name&gt;<span class="w"> </span>iptables<span class="w"> </span>-t<span class="w"> </span>nat<span class="w"> </span>-L<span class="w"> </span>KUBE-SERVICES<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>backend-svc<span class="w">   </span><span class="c1"># gives KUBE-SVC-XXXX</span>
+docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;node-name&gt;<span class="w"> </span>iptables<span class="w"> </span>-t<span class="w"> </span>nat<span class="w"> </span>-L<span class="w"> </span>KUBE-SVC-XXXX<span class="w"> </span>-n
+</code></pre></div>
+<ul>
+<li>3 rules with probabilities ≈ <code>0.333</code>, <code>0.5</code>, then the rest →<ul>
+<li>rule 1 catches 1/3 of traffic</li>
+<li>rule 2 catches half of the remaining 2/3 → 1/3</li>
+<li>rule 3 takes what's left → 1/3</li>
+<li>→ each Pod gets an equal share, chosen randomly per new connection</li>
+</ul>
+</li>
+</ul>
+<h3 id="reading-kubectl-describe-svc">Reading <code>kubectl describe svc</code><a class="headerlink" href="#reading-kubectl-describe-svc" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Name:                     backend-svc
+Namespace:                default
+Selector:                 app=backend
+Type:                     ClusterIP
+IP:                       10.96.74.12
+Port:                     &lt;unset&gt;  9090/TCP
+TargetPort:               5678/TCP
+Endpoints:                10.244.2.14:5678,10.244.1.14:5678,10.244.2.15:5678
+Session Affinity:         None
+Internal Traffic Policy:  Cluster
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Selector</code></td>
+<td>Label used to find Pods</td>
+</tr>
+<tr>
+<td><code>Type</code></td>
+<td>ClusterIP → internal only</td>
+</tr>
+<tr>
+<td><code>IP</code></td>
+<td>Fixed virtual IP → survives Pods being replaced</td>
+</tr>
+<tr>
+<td><code>Port: &lt;unset&gt; 9090/TCP</code></td>
+<td><code>&lt;unset&gt;</code> = this port has no name (optional) → Service listens on 9090</td>
+</tr>
+<tr>
+<td><code>TargetPort</code></td>
+<td>App's port inside the Pod</td>
+</tr>
+<tr>
+<td><code>Endpoints</code></td>
+<td>Real <code>PodIP:targetPort</code> of every Ready matching Pod → <strong>first thing to check when debugging</strong></td>
+</tr>
+<tr>
+<td><code>Session Affinity: None</code></td>
+<td>Each new connection can go to any Pod → <code>ClientIP</code> = same client keeps hitting the same Pod</td>
+</tr>
+<tr>
+<td><code>Internal Traffic Policy: Cluster</code></td>
+<td>In-cluster traffic may go to Pods on any node (<code>Local</code> = only Pods on the caller's node)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dns-names-of-a-service">DNS names of a Service<a class="headerlink" href="#dns-names-of-a-service" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Called from</th>
+<th>Name that works</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Same namespace</td>
+<td><code>backend-svc</code></td>
+</tr>
+<tr>
+<td>Other namespace</td>
+<td><code>backend-svc.&lt;namespace&gt;</code></td>
+</tr>
+<tr>
+<td>Anywhere (full name, FQDN)</td>
+<td><code>backend-svc.&lt;namespace&gt;.svc.cluster.local</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="lab-frontend-backend-with-clusterip">Lab: frontend + backend with ClusterIP<a class="headerlink" href="#lab-frontend-backend-with-clusterip" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># backend.yaml</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend-deploy</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend-container</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hashicorp/http-echo</span><span class="w">          </span><span class="c1"># tiny test server, listens on 5678</span>
+<span class="w">          </span><span class="nt">args</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"-text=Hello</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">backend</span><span class="nv"> </span><span class="s">:)"</span><span class="w">   </span><span class="c1"># text it replies with</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend-svc</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterIP</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9090</span>
+<span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5678</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span>
+</code></pre></div>
+<ul>
+<li><code>---</code> → separates two objects in one file</li>
+<li><code>http-echo</code> → replies to every request with the <code>-text</code> value → <strong>5678</strong> is its default port → that's where <code>targetPort: 5678</code> comes from</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># frontend.yaml (Deployment part)</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend-deploy</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend-container</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">   </span><span class="c1"># documentation only</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>backend.yaml<span class="w"> </span>-f<span class="w"> </span>frontend.yaml
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide<span class="w">                     </span><span class="c1"># match Pod IPs with the Endpoints line</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>backend-svc
+kubectl<span class="w"> </span>describe<span class="w"> </span>svc<span class="w"> </span>backend-svc<span class="w">             </span><span class="c1"># Endpoints → 3 IPs with :5678</span>
+
+<span class="c1"># call the backend from inside the cluster</span>
+kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>deploy/frontend-deploy<span class="w"> </span>--<span class="w"> </span>curl<span class="w"> </span>backend-svc:9090<span class="w">      </span><span class="c1"># Hello from backend :)</span>
+kubectl<span class="w"> </span>run<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--image<span class="o">=</span>busybox<span class="w"> </span>--<span class="w"> </span>wget<span class="w"> </span>-qO-<span class="w"> </span>backend-svc:9090
+
+<span class="c1"># see each step</span>
+kubectl<span class="w"> </span>run<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--image<span class="o">=</span>busybox<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/etc/resolv.conf<span class="w">     </span><span class="c1"># DNS settings in a Pod</span>
+kubectl<span class="w"> </span>run<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--image<span class="o">=</span>busybox<span class="w"> </span>--<span class="w"> </span>nslookup<span class="w"> </span>backend-svc<span class="w">     </span><span class="c1"># name → ClusterIP</span>
+</code></pre></div>
+<ul>
+<li>Break it on purpose → change <code>targetPort</code> to <code>5000</code> → apply → curl fails (nothing on 5000) → change back → works</li>
+</ul>
+<h2 id="nodeport">NodePort<a class="headerlink" href="#nodeport" title="Permanent link">&para;</a></h2>
+<h3 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h3>
+<ul>
+<li>ClusterIP works only <strong>inside</strong> the cluster → my laptop, browser or a user on the internet can't reach <code>10.96.x.x</code></li>
+<li>Need a way in from <strong>outside</strong></li>
+</ul>
+<h3 id="what-nodeport-does">What NodePort does<a class="headerlink" href="#what-nodeport-does" title="Permanent link">&para;</a></h3>
+<ul>
+<li>"Open the <strong>same port number</strong> on <strong>every node</strong>. Anything arriving there goes to my Service."</li>
+<li>Port range → <strong>30000–32767</strong> (configurable on the API server, best left alone) → avoids clashing with normal system ports</li>
+<li>From outside → <code>http://&lt;any node IP&gt;:&lt;nodePort&gt;</code></li>
+<li>Analogy → side door numbered 31000 on <strong>every floor</strong> of the building → walk into any floor's door 31000 → all lead to the same reception → works even on a floor with no backend Pods</li>
+<li>A NodePort Service <strong>is still a ClusterIP Service</strong> → gets a ClusterIP, in-cluster callers still use <code>svc:port</code> → NodePort only <strong>adds</strong> the outside door</li>
+</ul>
+<h3 id="now-three-ports">Now three ports<a class="headerlink" href="#now-three-ports" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>outside user ─▶ nodeIP:31000 ─▶ Service:80 ─▶ pod:80
+                 nodePort        port          targetPort
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What</th>
+<th>Who uses it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nodePort</code></td>
+<td>Port opened on every node (30000–32767)</td>
+<td><strong>Outside</strong> users</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td>Service's own port on its ClusterIP</td>
+<td>Pods <strong>inside</strong> the cluster</td>
+</tr>
+<tr>
+<td><code>targetPort</code></td>
+<td>App's port in the Pod</td>
+<td>Where traffic finally lands</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend-svc</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NodePort</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">          </span><span class="c1"># ClusterIP port, in-cluster callers</span>
+<span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">    </span><span class="c1"># nginx listens on 80</span>
+<span class="w">      </span><span class="nt">nodePort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">31000</span><span class="w">   </span><span class="c1"># opened on every node (30000-32767)</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend</span>
+</code></pre></div>
+<ul>
+<li><code>nodePort</code> omitted → Kubernetes picks a random free one in 30000–32767</li>
+<li>Set it explicitly when something outside depends on the number (kind <code>extraPortMappings</code>, firewall rules)</li>
+<li>One <code>nodePort</code> belongs to <strong>one Service</strong> cluster-wide → two Services can't both use 31000</li>
+<li><code>kubectl get svc</code> shows <code>80:31000/TCP</code> → read as <code>port:nodePort</code></li>
+</ul>
+<h3 id="kubectl-describe-of-a-nodeport-service"><code>kubectl describe</code> of a NodePort Service<a class="headerlink" href="#kubectl-describe-of-a-nodeport-service" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Type:                     NodePort
+IP:                       10.96.199.133
+Port:                     &lt;unset&gt;  80/TCP
+TargetPort:               80/TCP
+NodePort:                 &lt;unset&gt;  31000/TCP
+Endpoints:                10.244.2.10:80,10.244.1.9:80,10.244.1.10:80
+External Traffic Policy:  Cluster
+</code></pre></div>
+<ul>
+<li>Still has an <code>IP</code> → proof NodePort is built on ClusterIP</li>
+</ul>
+<h3 id="what-happens-on-a-request-from-outside">What happens on a request from outside<a class="headerlink" href="#what-happens-on-a-request-from-outside" title="Permanent link">&para;</a></h3>
+<ol>
+<li>User → <code>172.18.0.4:31000</code> (Node 2's IP) → arrives at Node 2's network interface</li>
+<li>kube-proxy wrote a rule on <strong>every</strong> node → "anything to port 31000 on a node IP → frontend-svc"</li>
+<li>iptables picks an endpoint, e.g. <code>10.244.1.10:80</code> → <strong>DNAT</strong></li>
+<li><code>10.244.1.10</code> may be on a <strong>different node</strong> → CNI carries it there → that's why any node's door works</li>
+<li><strong>SNAT</strong> (extra step NodePort adds) → Node 2 also rewrites the <strong>source</strong> to its own IP → otherwise the other node would reply straight to the user and the user would reject it<ul>
+<li>side effect → nginx sees <strong>Node 2's IP</strong>, not the user's real IP</li>
+</ul>
+</li>
+<li>Reply → conntrack reverses both rewrites → user gets the answer from <code>172.18.0.4:31000</code></li>
+</ol>
+<div class="highlight"><pre><span></span><code>NodePort (31000) → ClusterIP (80) → Pod (80)
+</code></pre></div>
+<h3 id="external-traffic-policy">External Traffic Policy<a class="headerlink" href="#external-traffic-policy" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>Cluster</code> (default)</th>
+<th><code>Local</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node sends traffic to</td>
+<td>Pods on <strong>any</strong> node</td>
+<td>Only Pods on <strong>itself</strong></td>
+</tr>
+<tr>
+<td>Works through every node</td>
+<td>Yes</td>
+<td>Only nodes running a matching Pod (others drop it)</td>
+</tr>
+<tr>
+<td>Extra hop</td>
+<td>Possible</td>
+<td>None</td>
+</tr>
+<tr>
+<td>App sees real client IP</td>
+<td>No (SNAT)</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>One-liner → Cluster spreads load evenly but hides the client IP | Local keeps the client IP but fails on nodes without Pods</li>
+</ul>
+<h3 id="which-node-should-the-user-use">Which node should the user use?<a class="headerlink" href="#which-node-should-the-user-use" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>NodePort doesn't answer that</strong> → it opens the door everywhere and leaves the choice to someone else</li>
+<li>I have to hand out a node IP, or put something in front that knows all nodes (a load balancer)</li>
+</ul>
+<h3 id="what-happens-when-a-node-goes-down">What happens when a node goes down<a class="headerlink" href="#what-happens-when-a-node-goes-down" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Users pointing at <strong>that node's IP</strong> → requests time out → NodePort can't help → they must switch to another node's IP <strong>manually</strong></li>
+<li>Users on other nodes → mostly fine → but Pods that lived on the dead node are gone too</li>
+<li>Timeline inside the cluster →<ul>
+<li><strong>0 s</strong> → node stops, its kubelet stops sending heartbeats</li>
+<li><strong>~40 s</strong> → node controller marks it <code>NotReady</code> (<code>node-monitor-grace-period</code>) → its Pods marked not Ready → removed from every Service's endpoints → kube-proxy on healthy nodes updates rules</li>
+<li><strong>0–40 s</strong> → healthy nodes may still pick dead Pods → some requests hang or fail (the blip)</li>
+<li><strong>~5 min</strong> → Pods on the NotReady node evicted (default toleration 300 s) → ReplicaSet creates replacements on healthy nodes → added once Ready</li>
+</ul>
+</li>
+<li>Routing heals in ~40 s | capacity heals in ~5 min</li>
+<li>NodePort address = a <strong>node IP</strong> → belongs to one machine → dies with it → Kubernetes can't move it → NodePort gives the port everywhere but <strong>no single address that survives node failure</strong></li>
+</ul>
+<h3 id="ways-to-put-one-stable-address-in-front">Ways to put one stable address in front<a class="headerlink" href="#ways-to-put-one-stable-address-in-front" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Where</th>
+<th>How</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LoadBalancer Service</strong></td>
+<td>Cloud (AWS/GCP/Azure)</td>
+<td>Cloud LB with health checks → all nodes' NodePort</td>
+</tr>
+<tr>
+<td>External LB (HAProxy / nginx VM)</td>
+<td>On-prem</td>
+<td>Configured with all node IPs + NodePort + health checks</td>
+</tr>
+<tr>
+<td><strong>MetalLB</strong></td>
+<td>Bare metal / on-prem / kind</td>
+<td>Gives LoadBalancer Services a real IP that moves to a healthy node</td>
+</tr>
+<tr>
+<td>DNS with all node IPs</td>
+<td>Cheap hack</td>
+<td>3 A records → clients may still try the dead IP, caching slows recovery</td>
+</tr>
+</tbody>
+</table>
+<h3 id="when-nodeport-is-used">When NodePort is used<a class="headerlink" href="#when-nodeport-is-used" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Labs, testing, quick demos, some on-prem setups</li>
+<li>Not exposed directly to users in production → ugly ports, users would need node IPs, no failover</li>
+<li>Still used <strong>underneath</strong> → a LoadBalancer Service sends traffic to NodePorts</li>
+</ul>
+<h3 id="simulate-a-node-failure-on-kind">Simulate a node failure on kind<a class="headerlink" href="#simulate-a-node-failure-on-kind" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide<span class="w">                       </span><span class="c1"># which Pods are on &lt;worker&gt;</span>
+docker<span class="w"> </span>stop<span class="w"> </span>&lt;worker-node-container&gt;<span class="w">            </span><span class="c1"># "kill" the node</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-w<span class="w">                           </span><span class="c1"># NotReady after ~40 s</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>svc<span class="w"> </span>frontend-svc<span class="w">              </span><span class="c1"># Endpoints shrink</span>
+docker<span class="w"> </span>start<span class="w"> </span>&lt;worker-node-container&gt;<span class="w">           </span><span class="c1"># bring it back</span>
+</code></pre></div>
+<h2 id="reaching-nodeport-on-kind-extraportmappings">Reaching NodePort on kind (<code>extraPortMappings</code>)<a class="headerlink" href="#reaching-nodeport-on-kind-extraportmappings" title="Permanent link">&para;</a></h2>
+<h3 id="the-problem_1">The problem<a class="headerlink" href="#the-problem_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Each kind node = a Docker container → NodePort opens 31000 <strong>inside</strong> each container</li>
+<li><strong>macOS / Windows</strong> → Docker runs inside a hidden Linux VM (Docker Desktop) → the <code>172.18.0.x</code> node network exists only inside that VM → laptop can't reach <code>172.18.0.x:31000</code></li>
+<li><strong>Native Linux</strong> (e.g. Ubuntu) → Docker runs on my own kernel → the bridge network is on my machine → <code>curl 172.18.0.x:31000</code> works directly</li>
+<li><code>localhost:31000</code> → on <strong>any</strong> OS, nothing on my laptop listens on 31000 unless I map it</li>
+</ul>
+<h3 id="the-fix-a-pipe-from-my-laptop-into-a-node">The fix → a pipe from my laptop into a node<a class="headerlink" href="#the-fix-a-pipe-from-my-laptop-into-a-node" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Cluster</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kind.x-k8s.io/v1alpha4</span>
+<span class="nt">nodes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">control-plane</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5</span>
+<span class="w">    </span><span class="nt">extraPortMappings</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">31000</span><span class="w">   </span><span class="c1"># port inside the node container → must equal the Service's nodePort</span>
+<span class="w">        </span><span class="nt">hostPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">31000</span><span class="w">        </span><span class="c1"># port on my laptop</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">worker</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">worker</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5</span>
+</code></pre></div>
+<ul>
+<li><code>extraPortMappings</code> = kind passing Docker's <code>-p hostPort:containerPort</code> when it creates the node container → same as <code>docker run -p 31000:31000 ...</code></li>
+<li><strong>hostPort</strong> → outside end of the pipe (my laptop) | <strong>containerPort</strong> → inside end (the node)</li>
+<li><code>containerPort</code> <strong>must equal</strong> the Service's <code>nodePort</code> → otherwise the pipe ends at a closed door</li>
+<li><code>hostPort</code> can be anything → <code>hostPort: 9090</code> → open <code>localhost:9090</code> → still reaches <code>containerPort: 31000</code></li>
+<li>Only the <strong>control-plane</strong> has the mapping → enough, NodePort opens 31000 on every node and forwards to Pods on workers</li>
+<li>Only <strong>mapped</strong> ports reach the cluster through <code>localhost</code> → a Service on nodePort <code>30950</code> is <strong>not</strong> reachable at <code>localhost:30950</code> unless 30950 is also mapped</li>
+<li>This is why the nodePort is fixed in the Service YAML (<code>nodePort: 31000</code>) instead of letting Kubernetes pick one</li>
+<li><code>image: ...@sha256:...</code> → pins the exact Kubernetes version, the digest guarantees the identical image every time</li>
+</ul>
+<h3 id="can-only-be-set-at-creation">Can only be set at creation<a class="headerlink" href="#can-only-be-set-at-creation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>extraPortMappings</code> can't be added to a running cluster → delete and recreate:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>kind<span class="w"> </span>get<span class="w"> </span>clusters
+kind<span class="w"> </span>delete<span class="w"> </span>cluster<span class="w"> </span>--name<span class="w"> </span>my-first-cluster
+kind<span class="w"> </span>create<span class="w"> </span>cluster<span class="w"> </span>--name<span class="w"> </span>my-second-cluster<span class="w"> </span>--config<span class="w"> </span>kind-cluster.yaml
+</code></pre></div>
+<h3 id="the-full-chain">The full chain<a class="headerlink" href="#the-full-chain" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Browser ─▶ localhost:31000                          (laptop)
+   ─▶ Docker port forward ─▶ control-plane container:31000
+   ─▶ kube-proxy NodePort rule ─▶ frontend-svc
+   ─▶ DNAT to an nginx Pod:80 (CNI delivers it if the Pod is on a worker)
+</code></pre></div>
+<h2 id="lab-expose-the-frontend-hide-the-backend">Lab: expose the frontend, hide the backend<a class="headerlink" href="#lab-expose-the-frontend-hide-the-backend" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Real pattern → <strong>frontend = NodePort</strong> (outside door) | <strong>backend = ClusterIP</strong> (internal only, safer)</li>
+</ul>
+<div class="highlight"><pre><span></span><code>User ─▶ any node:31000 (frontend-svc, NodePort) ─▶ nginx Pod:80
+                                                     │
+                     backend-svc:9090 (ClusterIP) ◀──┘
+                              │
+                              └─▶ http-echo Pod:5678
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># frontend.yaml (Service part)</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend-svc</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NodePort</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">        </span><span class="c1"># nginx's port, NOT the backend's 5678</span>
+<span class="w">      </span><span class="nt">nodePort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">31000</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>backend.yaml
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>frontend.yaml
+kubectl<span class="w"> </span>get<span class="w"> </span>all
+
+kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>wide<span class="w">                          </span><span class="c1"># INTERNAL-IP column → 172.18.0.x</span>
+curl<span class="w"> </span><span class="m">172</span>.18.0.2:31000<span class="w">                              </span><span class="c1"># any node works (native Linux)</span>
+curl<span class="w"> </span>localhost:31000<span class="w">                               </span><span class="c1"># through extraPortMappings</span>
+kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>deploy/frontend-deploy<span class="w"> </span>--<span class="w"> </span>curl<span class="w"> </span>backend-svc:9090<span class="w">   </span><span class="c1"># backend from inside only</span>
+</code></pre></div>
+<ul>
+<li>Expected →<ul>
+<li><code>localhost:31000</code> → <strong>"Welcome to nginx!"</strong> page</li>
+<li>backend reachable only from inside → <code>Hello from backend :)</code></li>
+</ul>
+</li>
+<li>Plain nginx <strong>doesn't call the backend</strong> → it just serves its own page → the diagram's nginx → backend arrow shows the idea; making nginx forward needs a <code>proxy_pass http://backend-svc:9090;</code> config</li>
+<li>Moving the outside door from one Service to another → delete the old NodePort Service first → <code>nodePort: 31000</code> can belong to only one Service, and changing a Service's type in place keeps its old nodePort</li>
+</ul>
+<h3 id="reading-kubectl-get-all">Reading <code>kubectl get all</code><a class="headerlink" href="#reading-kubectl-get-all" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>pod/...</code> → individual Pods</li>
+<li><code>service/...</code> → <code>PORT(S)</code> = <code>port:nodePort/TCP</code> for NodePort | <code>port/TCP</code> for ClusterIP</li>
+<li><code>deployment.apps/...</code> → <code>READY 3/3</code> = 3 of 3 desired Pods Ready</li>
+<li><code>replicaset.apps/...</code> → created by the Deployment to keep the Pods running → hash in the name (<code>79f94c6cdc</code>) changes whenever the Pod template changes (that's how rollouts work)</li>
+<li><code>ContainerCreating</code> for a while → image still downloading → becomes <code>Running</code></li>
+</ul>
+<h2 id="loadbalancer">LoadBalancer<a class="headerlink" href="#loadbalancer" title="Permanent link">&para;</a></h2>
+<h3 id="the-problem-left-by-nodeport">The problem left by NodePort<a class="headerlink" href="#the-problem-left-by-nodeport" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Users must know a node IP | node dies → its users are cut off | ugly ports like <code>:31000</code></li>
+</ul>
+<h3 id="what-it-does">What it does<a class="headerlink" href="#what-it-does" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Asks the <strong>cloud</strong> (AWS, GCP, Azure) → "create a real load balancer with one external address and point it at all my nodes"</li>
+</ul>
+<div class="highlight"><pre><span></span><code>User ─▶ one external address (cloud LB)
+          ─▶ health-checks every node
+          ─▶ sends traffic only to healthy nodes on the NodePort
+          ─▶ Service ─▶ Pod
+</code></pre></div>
+<ul>
+<li>User only knows <strong>one address</strong> (e.g. <code>abc123.elb.amazonaws.com</code>) → normal ports like 80/443 → dead node skipped automatically</li>
+<li>Analogy → <strong>main gate with a guard</strong> outside the building → visitors only go to the gate → guard sends them through a working floor door</li>
+<li>A LoadBalancer Service gets <strong>all three</strong> → ClusterIP + NodePort + external address</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend-lb</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LoadBalancer</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">              </span><span class="c1"># port on the load balancer AND the ClusterIP</span>
+<span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">        </span><span class="c1"># nginx's port</span>
+<span class="w">      </span><span class="c1"># nodePort: 31000     # optional → usually left out, Kubernetes picks one</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend</span>
+</code></pre></div>
+<h3 id="what-happens-when-its-applied">What happens when it's applied<a class="headerlink" href="#what-happens-when-its-applied" title="Permanent link">&para;</a></h3>
+<ol>
+<li>API server stores it → assigns a <strong>ClusterIP</strong> and a <strong>NodePort</strong> (random, e.g. 32145)</li>
+<li>kube-proxy writes ClusterIP + NodePort rules on every node → same as before</li>
+<li><strong>cloud-controller-manager</strong> (control-plane component that talks to the cloud API) sees <code>type: LoadBalancer</code> → calls the cloud → "create a load balancer"</li>
+<li>Cloud creates it (on AWS an <strong>ELB</strong>) with →<ul>
+<li><strong>listener</strong> on port 80</li>
+<li><strong>targets</strong> → every node on port 32145 (the NodePort)</li>
+<li><strong>health checks</strong> on each node</li>
+</ul>
+</li>
+<li>Cloud returns the address → written into the Service's status → <code>EXTERNAL-IP</code> column</li>
+</ol>
+<div class="highlight"><pre><span></span><code>NAME          TYPE           CLUSTER-IP    EXTERNAL-IP                PORT(S)
+frontend-lb   LoadBalancer   10.96.80.12   abc123.elb.amazonaws.com   80:32145/TCP
+</code></pre></div>
+<ul>
+<li><code>80:32145</code> → LB/Service port : NodePort</li>
+</ul>
+<h3 id="the-packet-path">The packet path<a class="headerlink" href="#the-packet-path" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>User ─▶ abc123.elb.amazonaws.com:80
+   ─▶ cloud LB picks a healthy node ─▶ node:32145 (NodePort)
+   ─▶ kube-proxy iptables ─▶ DNAT ─▶ nginx Pod:80
+</code></pre></div>
+<ul>
+<li>Node fails health checks → LB removes it within seconds → the failover NodePort couldn't give</li>
+</ul>
+<h3 id="on-aws-eks">On AWS (EKS)<a class="headerlink" href="#on-aws-eks" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Plain <code>type: LoadBalancer</code> → Classic LB by default, NLB with annotations</li>
+<li>Most teams install the <strong>AWS Load Balancer Controller</strong> →<ul>
+<li><code>type: LoadBalancer</code> Service → <strong>NLB</strong> (L4)</li>
+<li><strong>Ingress</strong> → <strong>ALB</strong> (L7)</li>
+<li>can target <strong>Pod IPs directly</strong> (<code>target-type: ip</code>) → skips the NodePort hop</li>
+</ul>
+</li>
+<li>Internal LB (annotation) → private LB reachable only inside the VPC</li>
+</ul>
+<h3 id="on-kind">On kind<a class="headerlink" href="#on-kind" title="Permanent link">&para;</a></h3>
+<ul>
+<li>No cloud → nobody creates the LB → <code>EXTERNAL-IP</code> stays <code>&lt;pending&gt;</code> forever → <strong>normal, not a bug</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>expose<span class="w"> </span>deployment<span class="w"> </span>frontend-deploy<span class="w"> </span>--name<span class="o">=</span>frontend-lb<span class="w"> </span>--type<span class="o">=</span>LoadBalancer<span class="w"> </span>--port<span class="o">=</span><span class="m">80</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>frontend-lb<span class="w">          </span><span class="c1"># EXTERNAL-IP &lt;pending&gt;</span>
+</code></pre></div>
+<ul>
+<li>To get a real IP locally → something must act like a cloud →<ul>
+<li><strong>cloud-provider-kind</strong> → official Kubernetes SIG tool built for this</li>
+<li><strong>MetalLB</strong> → common for bare-metal and on-prem clusters</li>
+</ul>
+</li>
+</ul>
+<h3 id="is-it-used-in-production">Is it used in production?<a class="headerlink" href="#is-it-used-in-production" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Rare</strong> → one LoadBalancer Service <strong>per app</strong> →<ul>
+<li>cost → one cloud LB each (roughly $16–20/month each on AWS before traffic)</li>
+<li>many external addresses to manage</li>
+<li>L4 only → can't route by URL path or hostname, no central TLS</li>
+</ul>
+</li>
+<li>Normal web apps → <strong>Ingress</strong> (or Gateway API) → one entry point routes by path/host → app Services stay <strong>ClusterIP</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>app.com/       → frontend-svc (ClusterIP)
+app.com/api    → api-svc      (ClusterIP)
+admin.app.com  → admin-svc    (ClusterIP)
+</code></pre></div>
+<ul>
+<li><strong>Still used</strong> in production for →<ol>
+<li><strong>In front of the Ingress controller</strong> → ingress-nginx is just Pods → one <code>type: LoadBalancer</code> Service brings outside traffic to them → LB used <strong>once</strong>, at the edge</li>
+<li><strong>Non-HTTP traffic</strong> → Ingress understands only HTTP/HTTPS → databases, MQTT, game servers, DNS, some gRPC → LoadBalancer Service</li>
+<li><strong>Internal load balancers</strong> → expose a service privately inside the VPC (other clusters, VMs, VPN users)</li>
+</ol>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>What's used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal web apps</td>
+<td>ClusterIP + Ingress / Gateway API</td>
+</tr>
+<tr>
+<td>Getting traffic into the Ingress controller</td>
+<td>1 LoadBalancer Service</td>
+</tr>
+<tr>
+<td>TCP/UDP apps</td>
+<td>LoadBalancer Service</td>
+</tr>
+<tr>
+<td>Private access inside the VPC</td>
+<td>Internal LoadBalancer Service</td>
+</tr>
+<tr>
+<td>Labs and testing</td>
+<td>NodePort</td>
+</tr>
+</tbody>
+</table>
+<h2 id="externalname">ExternalName<a class="headerlink" href="#externalname" title="Permanent link">&para;</a></h2>
+<h3 id="the-problem_2">The problem<a class="headerlink" href="#the-problem_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>App inside the cluster needs something <strong>outside</strong> → e.g. a database on AWS RDS → <code>mydb.abc123.ap-south-1.rds.amazonaws.com</code></li>
+<li>Hard-coded in the app → DB moves (test → prod, new instance) → change and redeploy the app</li>
+</ul>
+<h3 id="what-it-does_1">What it does<a class="headerlink" href="#what-it-does_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Creates a <strong>nickname</strong> inside the cluster → <code>my-db</code> → the long outside name</li>
+<li>App connects to <code>my-db</code> → DB changes → update only the Service → app untouched</li>
+<li>Analogy → saved phone contact "Papa" → number changes → update the contact once, keep tapping "Papa" | or speed-dial 111 for IT support</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cka-db-svc</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ExternalName</span>
+<span class="w">  </span><span class="nt">externalName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cka-db.judhtdmxwly6.us-east-1.rds.amazonaws.com</span><span class="w">   </span><span class="c1"># RDS DNS name</span>
+</code></pre></div>
+<ul>
+<li><strong>No selector, no ports, no ClusterIP</strong> → just <code>type</code> + <code>externalName</code></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>ClusterIP / NodePort / LoadBalancer</th>
+<th>ExternalName</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Points to</td>
+<td>Pods inside the cluster</td>
+<td>A DNS name <strong>outside</strong> the cluster</td>
+</tr>
+<tr>
+<td>Selector</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Virtual IP</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Endpoints / kube-proxy rules</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Traffic flows through it</td>
+<td>Yes (address rewrite)</td>
+<td>No (only the name is swapped)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-actually-happens">What actually happens<a class="headerlink" href="#what-actually-happens" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Applied → API server stores it → <strong>no ClusterIP, no endpoints, no iptables rules</strong></li>
+<li>CoreDNS creates a <strong>CNAME</strong> record (DNS alias) →
+   <code>cka-db-svc.default.svc.cluster.local → CNAME → cka-db.judhtdmxwly6.us-east-1.rds.amazonaws.com</code></li>
+<li>App connects to <code>cka-db-svc:3306</code> →<ul>
+<li>asks CoreDNS → "that's another name for the RDS hostname"</li>
+<li>resolution continues → RDS hostname → real IP (e.g. <code>10.0.5.23</code>)</li>
+<li>app connects <strong>directly</strong> to <code>10.0.5.23:3306</code></li>
+</ul>
+</li>
+<li>Kubernetes is involved only in the <strong>DNS step</strong> → no DNAT, no load balancing</li>
+</ol>
+<h3 id="watch-out">Watch out<a class="headerlink" href="#watch-out" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ports are ignored</strong> → app must use the outside service's real port (3306 for MySQL) → ExternalName can't map 80 → 3306</li>
+<li><strong>Must be a DNS name, not an IP</strong> → <code>externalName: 10.0.5.23</code> → creates a CNAME to "10.0.5.23" → wrong<ul>
+<li>fixed outside <strong>IP</strong> → use a Service with <strong>no selector</strong> + an EndpointSlice I write by hand with that IP</li>
+</ul>
+</li>
+<li><strong>HTTP/HTTPS can break</strong> → HTTP sends <code>Host: cka-db-svc</code> | HTTPS certificate is for the real hostname, not the alias → many websites and APIs reject it → best for <strong>databases and plain TCP</strong>, risky for HTTPS APIs</li>
+</ul>
+<h3 id="real-uses">Real uses<a class="headerlink" href="#real-uses" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Short in-cluster name for a <strong>managed database</strong> (RDS, Cloud SQL)</li>
+<li><strong>Migrations</strong> → <code>my-db</code> → outside DB today → later move the DB into the cluster and turn <code>my-db</code> into a normal ClusterIP Service → app never changes</li>
+<li><strong>Per-environment config</strong> → <code>my-db</code> in the dev namespace → dev DB | in prod namespace → prod DB → same app YAML everywhere</li>
+<li><strong>Cross-namespace alias</strong> → <code>my-db</code> → <code>postgres.database.svc.cluster.local</code></li>
+<li>Third-party APIs and legacy systems (watch the HTTPS caveat)</li>
+</ul>
+<h3 id="try-it">Try it<a class="headerlink" href="#try-it" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>create<span class="w"> </span>service<span class="w"> </span>externalname<span class="w"> </span>my-google<span class="w"> </span>--external-name<span class="w"> </span>www.google.com
+kubectl<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>my-google<span class="w">                                  </span><span class="c1"># EXTERNAL-IP = www.google.com, no CLUSTER-IP</span>
+kubectl<span class="w"> </span>run<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--image<span class="o">=</span>busybox<span class="w"> </span>--<span class="w"> </span>nslookup<span class="w"> </span>my-google
+<span class="c1"># my-google.default.svc.cluster.local  canonical name = www.google.com → then Google's IPs</span>
+</code></pre></div>
+<h2 id="headless-services">Headless Services<a class="headerlink" href="#headless-services" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>clusterIP: None</code> → no virtual IP, no load balancing</li>
+<li>DNS returns <strong>every Pod's IP</strong> directly instead of one Service IP</li>
+<li>Used with <strong>StatefulSets</strong> (databases) → client must reach a specific Pod → <code>mysql-0.mysql.default.svc.cluster.local</code> (e.g. the primary), not "any free one"</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">clusterIP</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">None</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mysql</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3306</span>
+</code></pre></div>
+<h2 id="which-type-when">Which type when<a class="headerlink" href="#which-type-when" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pod-to-Pod traffic inside the cluster</td>
+<td>ClusterIP</td>
+</tr>
+<tr>
+<td>Quick access from outside in a lab</td>
+<td>NodePort</td>
+</tr>
+<tr>
+<td>Public endpoint on a cloud (TCP/UDP, or for the Ingress controller)</td>
+<td>LoadBalancer</td>
+</tr>
+<tr>
+<td>Many HTTP apps behind one entry point</td>
+<td>ClusterIP + Ingress / Gateway API</td>
+</tr>
+<tr>
+<td>Short name for an outside DNS name</td>
+<td>ExternalName</td>
+</tr>
+<tr>
+<td>Reach individual Pods (StatefulSets)</td>
+<td>Headless</td>
+</tr>
+</tbody>
+</table>
+<h2 id="request-flow-summary">Request flow summary<a class="headerlink" href="#request-flow-summary" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>ClusterIP     Pod ─▶ svc-name:port ─▶ (DNS → ClusterIP) ─▶ iptables DNAT ─▶ Pod:targetPort
+
+NodePort      User ─▶ anyNodeIP:nodePort ─▶ ClusterIP:port ─▶ Pod:targetPort
+              (node down → user must switch to another node IP manually)
+
+LoadBalancer  User ─▶ LB address:port ─▶ healthy node:nodePort ─▶ ClusterIP:port ─▶ Pod:targetPort
+
+ExternalName  Pod ─▶ svc-name ─▶ (DNS CNAME) ─▶ outside hostname ─▶ connects directly
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Quick revision</p>
+<ul>
+<li>Service = stable virtual IP + DNS name + load balancing in front of Pods with changing IPs</li>
+<li>Finds Pods by label selector → only Ready Pods, same namespace → list kept in EndpointSlices</li>
+<li><code>port</code> = Service's port (callers) | <code>targetPort</code> = app's port in the Pod | <code>nodePort</code> = port on every node (30000–32767)</li>
+<li>ClusterIP is virtual → kube-proxy writes iptables DNAT rules on every node → conntrack reverses them for replies</li>
+<li>CoreDNS maps <code>svc.namespace.svc.cluster.local</code> → ClusterIP | Pods use it via <code>/etc/resolv.conf</code> (<code>10.96.0.10</code>)</li>
+<li>LoadBalancer ⊃ NodePort ⊃ ClusterIP | ExternalName = CNAME only | Headless = Pod IPs from DNS</li>
+<li>Wrong <code>targetPort</code> → Pods Running, Endpoints filled, but connection refused / empty response</li>
+</ul>
+</div>
+<div class="admonition question">
+<p class="admonition-title">Interview points</p>
+<ul>
+<li>Why do we need Services? → Pod IPs change on every restart, so a Service gives a stable IP and DNS name and load-balances across the current Ready Pods</li>
+<li>How does a Service know which Pods to send traffic to? → its label selector; the EndpointSlice controller keeps a list of Ready Pods with matching labels in the same namespace</li>
+<li>port vs targetPort vs nodePort? → port is the Service's port that callers use, targetPort is the port the app in the Pod listens on, nodePort is the port opened on every node for outside traffic</li>
+<li>Is the ClusterIP assigned to any interface? → no, it's virtual; kube-proxy programs iptables/IPVS/nftables rules on every node that DNAT it to a Pod IP</li>
+<li>Who does the load balancing for a ClusterIP Service? → kube-proxy's rules in the node kernel, choosing a random endpoint per new connection; no proxy process sits in the data path in iptables mode</li>
+<li>What does CoreDNS do for Services? → watches the API server and answers name lookups, mapping service names to ClusterIPs, or to a CNAME for ExternalName</li>
+<li>Pods are Running but the Service's Endpoints are empty, why? → the selector doesn't match the Pod labels, the Pods aren't Ready, or they're in another namespace</li>
+<li>Endpoints are filled but requests get connection refused? → targetPort doesn't match the port the app actually listens on</li>
+<li>Does a NodePort Service also have a ClusterIP? → yes, NodePort builds on ClusterIP and LoadBalancer builds on NodePort</li>
+<li>Default NodePort range? → 30000–32767</li>
+<li>What happens with NodePort if a node goes down? → clients using that node's IP fail and must switch manually; inside the cluster its Pods are removed from endpoints after the node goes NotReady (~40 s) and replaced after eviction (~5 min)</li>
+<li>externalTrafficPolicy Cluster vs Local? → Cluster forwards to Pods on any node but SNATs and hides the client IP; Local only uses Pods on the receiving node and preserves the client IP</li>
+<li>Who creates the cloud load balancer for a LoadBalancer Service? → the cloud-controller-manager, through the cloud provider's API</li>
+<li>Why is EXTERNAL-IP pending on kind or bare metal? → there's no cloud controller to provision a load balancer; use MetalLB or cloud-provider-kind</li>
+<li>Why not one LoadBalancer per app in production? → cost and no L7 routing; use one LoadBalancer for the ingress controller and ClusterIP Services behind Ingress</li>
+<li>What is an ExternalName Service? → a DNS CNAME alias to an external hostname with no ClusterIP, selector or proxying</li>
+<li>What is a headless Service? → clusterIP: None, DNS returns the individual Pod IPs, used with StatefulSets</li>
+<li>Why does kind need extraPortMappings? → nodes are Docker containers, so the host port must be mapped into a node container to reach a NodePort via localhost; it can only be set at cluster creation</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../three-tier-and-microservices/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Three-Tier &amp; Microservices">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Three-Tier & Microservices
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../debugging-services/" class="md-footer__link md-footer__link--next" aria-label="Next: Debugging Services &amp; DNS">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Debugging Services & DNS
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Notes by Aditya Pradhan
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.instant", "navigation.instant.prefetch", "navigation.tracking", "navigation.indexes", "navigation.footer", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../javascripts/home.js"></script>
+      
+    
+  </body>
+</html>
