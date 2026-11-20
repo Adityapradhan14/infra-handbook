@@ -116,6 +116,9 @@ nav:
       - YAML, Manifests & Objects: kubernetes/yaml-and-manifests.md
       - Pods, ReplicaSets & Deployments: kubernetes/pods-replicasets-deployments.md
       - kind, kubeconfig & Contexts: kubernetes/kind-and-kubeconfig.md
+      - Three-Tier & Microservices: kubernetes/three-tier-and-microservices.md
+      - Services: kubernetes/services.md
+      - Debugging Services & DNS: kubernetes/debugging-services.md
       - From kubectl apply to Running Pod: kubernetes/deployment-workflow.md
       - Container Runtime Internals: kubernetes/container-runtime.md
       - etcd & Raft: kubernetes/etcd-and-raft.md
