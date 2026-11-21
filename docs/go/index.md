@@ -12,5 +12,9 @@ Notes on Go, starting from how Go is laid out on a machine before any language s
     `go mod init`, `go.mod`, folders as packages, `package main`, exported names
 4. [Go Files, Running & Testing](files-running-testing.md)
     Parts of a `.go` file, `go run` / `go build`, reading compile errors, first test, linting
+5. [Functions & Printing](functions.md)
+    `Println` vs `Printf` verbs, parameters, multiple results, `(value, error)`, named returns
+6. [Variables, Types & Constants](variables-types-constants.md)
+    `var` and `:=`, zero values, type inference, basic types, conversions, `const`
 
 </div>

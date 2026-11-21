@@ -133,3 +133,5 @@ nav:
       - GOPATH, Caches & go env: go/gopath-and-caches.md
       - Modules & Packages: go/modules-and-packages.md
       - Go Files, Running & Testing: go/files-running-testing.md
+      - Functions & Printing: go/functions.md
+      - Variables, Types & Constants: go/variables-types-constants.md
