@@ -1,6 +1,6 @@
 # Kubernetes
 
-Notes on Kubernetes, written while working through the CKA course on a local `kind` cluster. They start with why Kubernetes exists and how a cluster is built, then the YAML and objects everything is written in, how a real app is split into tiers and microservices, and how Services connect them (and how to debug them when they don't), then go one layer deeper each chapter: what really happens on `kubectl apply`, how a Pod becomes a Linux process, how etcd stays consistent, and how access control and extensions work.
+Notes on Kubernetes, written while working through the CKA course on a local `kind` cluster. They start with why Kubernetes exists and how a cluster is built, then the YAML and objects everything is written in, how a real app is split into tiers and microservices, and how Services connect them (and how to debug them when they don't), the imperative commands used to generate manifests and test from inside the cluster, and how namespaces split one cluster, then go one layer deeper each chapter: what really happens on `kubectl apply`, how a Pod becomes a Linux process, how etcd stays consistent, and how access control and extensions work.
 
 <div class="ih-chapters" markdown>
 
@@ -20,17 +20,21 @@ Notes on Kubernetes, written while working through the CKA course on a local `ki
     ClusterIP, NodePort, LoadBalancer, ExternalName, `port` vs `targetPort` vs `nodePort`, DNS and iptables step by step
 8. [Debugging Services & DNS](debugging-services.md)
     Debugging method, checklist, CoreDNS not Ready, kube-proxy CrashLoopBackOff, wrong `targetPort`
-9. [From kubectl apply to Running Pod](deployment-workflow.md)
+9. [Imperative Commands](imperative-commands.md)
+    `--dry-run`, generating Deployments and Services, `containerPort`, fixed `nodePort`, labels, test Pods, Pod DNS
+10. [Namespaces](namespaces.md)
+    Built-ins, namespaced vs cluster-scoped, `-n`/`-A`, cross-namespace DNS, not isolation, default namespace, quotas
+11. [From kubectl apply to Running Pod](deployment-workflow.md)
     Each component's step, watching events, Pending vs CrashLoopBackOff
-10. [Container Runtime Internals](container-runtime.md)
+12. [Container Runtime Internals](container-runtime.md)
     Namespaces, cgroups, requests vs limits, `containerd`, `runc`, dockershim
-11. [etcd & Raft](etcd-and-raft.md)
+13. [etcd & Raft](etcd-and-raft.md)
     Key-value store, WAL, Secrets are base64, leader election, quorum
-12. [REST, gRPC & Protobuf](rest-grpc-protobuf.md)
+14. [REST, gRPC & Protobuf](rest-grpc-protobuf.md)
     How components talk, `.proto` files, where Kubernetes uses each
-13. [RBAC & Request Flow](rbac.md)
+15. [RBAC & Request Flow](rbac.md)
     Authentication, authorization, Roles and bindings, `kubectl auth can-i`
-14. [Webhooks, CRDs & Operators](webhooks-crds-operators.md)
+16. [Webhooks, CRDs & Operators](webhooks-crds-operators.md)
     Mutating vs validating admission, custom resources, controllers
 
 </div>

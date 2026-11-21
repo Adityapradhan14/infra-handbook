@@ -159,6 +159,7 @@ kubectl get pods --namespace=dev              # override for one command
 * Same name can exist in two namespaces (`web` in `dev` and `web` in `prod`) without conflict
 * Built-in ones → `default`, `kube-system` (control-plane Pods), `kube-public`, `kube-node-lease`
 * Not the same as Linux namespaces (process isolation) → different idea, same word
+* Full chapter → [Namespaces](namespaces.md)
 
 ## Other ways kubectl finds a cluster
 

@@ -119,6 +119,8 @@ nav:
       - Three-Tier & Microservices: kubernetes/three-tier-and-microservices.md
       - Services: kubernetes/services.md
       - Debugging Services & DNS: kubernetes/debugging-services.md
+      - Imperative Commands: kubernetes/imperative-commands.md
+      - Namespaces: kubernetes/namespaces.md
       - From kubectl apply to Running Pod: kubernetes/deployment-workflow.md
       - Container Runtime Internals: kubernetes/container-runtime.md
       - etcd & Raft: kubernetes/etcd-and-raft.md
