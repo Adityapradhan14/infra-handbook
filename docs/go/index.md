@@ -16,5 +16,9 @@ Notes on Go, starting from how Go is laid out on a machine before any language s
     `Println` vs `Printf` verbs, parameters, multiple results, `(value, error)`, named returns
 6. [Variables, Types & Constants](variables-types-constants.md)
     `var` and `:=`, zero values, type inference, basic types, conversions, `const`
+7. [Loops & Conditionals](loops-and-conditionals.md)
+    `for` in all its forms, `if` with short statements, `else`, `switch`, evaluation order, square-root exercise
+8. [Defer](defer.md)
+    Delayed calls for cleanup, arguments evaluated immediately, LIFO stacking
 
 </div>

@@ -135,3 +135,5 @@ nav:
       - Go Files, Running & Testing: go/files-running-testing.md
       - Functions & Printing: go/functions.md
       - Variables, Types & Constants: go/variables-types-constants.md
+      - Loops & Conditionals: go/loops-and-conditionals.md
+      - Defer: go/defer.md
