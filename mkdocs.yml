@@ -121,6 +121,8 @@ nav:
       - Debugging Services & DNS: kubernetes/debugging-services.md
       - Imperative Commands: kubernetes/imperative-commands.md
       - Namespaces: kubernetes/namespaces.md
+      - Manual Scheduling & Static Pods: kubernetes/manual-scheduling-and-static-pods.md
+      - Taints & Tolerations: kubernetes/taints-and-tolerations.md
       - From kubectl apply to Running Pod: kubernetes/deployment-workflow.md
       - Container Runtime Internals: kubernetes/container-runtime.md
       - etcd & Raft: kubernetes/etcd-and-raft.md
