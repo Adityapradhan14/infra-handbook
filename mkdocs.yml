@@ -131,6 +131,7 @@ nav:
       - Webhooks, CRDs & Operators: kubernetes/webhooks-crds-operators.md
   - Go:
       - go/index.md
+      - What is Go: go/what-is-go.md
       - Installation & GOROOT: go/installation-and-goroot.md
       - GOPATH, Caches & go env: go/gopath-and-caches.md
       - Modules & Packages: go/modules-and-packages.md
